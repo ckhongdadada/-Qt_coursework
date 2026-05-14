@@ -1,26 +1,14 @@
-﻿# Stage 1 - 数据层与后端接口基线
+﻿# Stage 2 - Qt 桌面主框架
 
-本阶段建立个人发展规划系统的 C++ 工程基础，重点完成：
+本阶段在后端基础上加入 Qt Widgets 桌面应用入口和主界面壳层。
 
-- SQLite 数据库 schema
-- Model / DAO / Service 分层
-- Qt HttpServer REST API
-- 独立后端服务 `pdp_server`
-- 基础 AI 服务接口占位
+新增内容：
 
-此阶段暂不包含 Qt 桌面界面，桌面 UI 将在后续阶段逐步加入。
+- `src/main_desktop.cpp`
+- `MainWindow` 主窗口框架
+- 侧边栏与导航列表
+- 顶部栏、时间卡、学生信息卡
+- 概览页基础展示
+- 后端运行控制器
 
-## 构建
-
-```powershell
-cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:\Qt\6.11.0\mingw_64
-cmake --build build --target pdp_server
-```
-
-## 运行
-
-```powershell
-.\build\pdp_server.exe
-```
-
-默认监听端口：`8080`。
+业务 CRUD 页面、简历编辑器和 AI 助手将在后续阶段加入。
