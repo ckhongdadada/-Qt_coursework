@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file alias="resources/schema.sql">schema.sql</file>
-        <file alias="icons/chevron-down.svg">icons/chevron-down.svg</file>
-    </qresource>
-</RCC>

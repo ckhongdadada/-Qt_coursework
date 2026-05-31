@@ -20,8 +20,9 @@ void TimeInfoCard::setupUi()
     layout->setContentsMargins(8, 6, 8, 6);
     layout->setSpacing(8);
 
-    m_avatar = new QLabel("T", this);
+    m_avatar = new QLabel("⏱", this);
     m_avatar->setObjectName("sidebarInfoAvatar");
+    m_avatar->setToolTip("当前学期与时间");
     layout->addWidget(m_avatar, 0, Qt::AlignTop);
 
     m_textWidget = new QWidget(this);

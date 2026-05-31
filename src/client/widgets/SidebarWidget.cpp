@@ -51,6 +51,7 @@ void SidebarWidget::setupUi()
     m_toggleButton = new QPushButton(QString(QChar(0x2261)), topRow);
     m_toggleButton->setObjectName("sidebarToggle");
     m_toggleButton->setFlat(true);
+    m_toggleButton->setToolTip("收起导航栏");
     topRowLayout->addWidget(m_toggleButton, 0, Qt::AlignTop);
     layout->addWidget(topRow);
 
@@ -88,7 +89,8 @@ void SidebarWidget::setupToggleAnimation()
             m_navList->setCollapsed(true);
             m_timeCard->setCollapsed(true);
             m_studentCard->setCollapsed(true);
-            m_toggleButton->setText(QString(QChar(0x203A)));
+            m_toggleButton->setText(QString(QChar(0x2630)));
+            m_toggleButton->setToolTip("展开导航栏");
             connect(group, &QParallelAnimationGroup::finished, this, [this, group]() {
                 m_brandMark->hide();
                 m_brandText->hide();
@@ -101,6 +103,7 @@ void SidebarWidget::setupToggleAnimation()
             m_timeCard->setCollapsed(false);
             m_studentCard->setCollapsed(false);
             m_toggleButton->setText(QString(QChar(0x2261)));
+            m_toggleButton->setToolTip("收起导航栏");
             m_brandMark->show();
             m_brandText->show();
             connect(group, &QParallelAnimationGroup::finished, group, &QObject::deleteLater);

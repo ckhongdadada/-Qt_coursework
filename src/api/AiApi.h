@@ -12,7 +12,8 @@ public:
     static QHttpServerResponse analyze(const QHttpServerRequest& request) {
         QJsonDocument doc = QJsonDocument::fromJson(request.body());
         if (!doc.isObject()) return JsonUtils::errorResponse("无效的JSON数据");
-        QJsonObject result = AiService::analyze(doc.object());
+        // 后端内部直接调用本地分析，避免HTTP自引用循环
+        QJsonObject result = AiService::analyzeLocal(doc.object());
         return JsonUtils::successResponse(result, "分析完成");
     }
 
@@ -23,7 +24,8 @@ public:
     static QHttpServerResponse chat(const QHttpServerRequest& request) {
         QJsonDocument doc = QJsonDocument::fromJson(request.body());
         if (!doc.isObject()) return JsonUtils::errorResponse("无效的JSON数据");
-        QJsonObject result = AiService::chat(doc.object());
+        // 后端内部直接调用本地回复，避免HTTP自引用循环
+        QJsonObject result = AiService::chatLocal(doc.object());
         return JsonUtils::successResponse(result);
     }
 };

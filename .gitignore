@@ -1,4 +1,4 @@
-﻿build/
+build/
 build_desktop/
 build_server_test/
 test_cmake/build/
@@ -29,4 +29,7 @@ __pycache__/
 *.pyc
 backups/
 qwen_models/
-pdp.db
+stage1/
+stage2/
+stage3/
+stage4/

@@ -23,6 +23,7 @@
 #include <QStyle>
 #include <QSystemTrayIcon>
 #include <QToolBar>
+#include <QTimer>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -62,7 +63,7 @@ MainWindow::MainWindow(QWidget* parent)
 {
     setWindowTitle(QString("学业发展规划系统 - Qt 桌面版 v%1").arg(PDP_VERSION));
     resize(1360, 860);
-    setMinimumSize(1080, 720);
+    setMinimumSize(1200, 780);
 
     QSettings settings;
     restoreGeometry(settings.value("geometry").toByteArray());
@@ -117,6 +118,7 @@ void MainWindow::setupUi()
     contentLayout->setContentsMargins(0, 0, 0, 0);
     contentLayout->setSpacing(0);
 
+    // --- 顶栏：统一中文，Pill改为AI面板切换按钮 ---
     QFrame* topbar = new QFrame(contentShell);
     topbar->setObjectName("topbar");
     QHBoxLayout* topbarLayout = new QHBoxLayout(topbar);
@@ -128,7 +130,7 @@ void MainWindow::setupUi()
     topbarTextLayout->setContentsMargins(0, 0, 0, 0);
     topbarTextLayout->setSpacing(2);
 
-    m_topbarKicker = new QLabel("Personal development planning website", topbarLeft);
+    m_topbarKicker = new QLabel("学业规划 · 知识库", topbarLeft);
     m_topbarKicker->setObjectName("topbarKicker");
     topbarTextLayout->addWidget(m_topbarKicker);
 
@@ -138,19 +140,25 @@ void MainWindow::setupUi()
     topbarLayout->addWidget(topbarLeft);
     topbarLayout->addStretch();
 
-    m_topbarPill = new QLabel("Knowledge base", topbar);
-    m_topbarPill->setObjectName("topbarPill");
-    topbarLayout->addWidget(m_topbarPill, 0, Qt::AlignVCenter);
-
     contentLayout->addWidget(topbar);
 
-    QWidget* mainShell = new QWidget(contentShell);
-    QVBoxLayout* mainShellLayout = new QVBoxLayout(mainShell);
-    mainShellLayout->setContentsMargins(0, 0, 0, 0);
-    mainShellLayout->setSpacing(0);
-    mainShellLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    // --- 内容区：简化布局层级，去掉多余的mainShell包裹 ---
+    QScrollArea* scrollArea = new QScrollArea(contentShell);
+    scrollArea->setObjectName("mainScrollArea");
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
-    m_mainInner = new QWidget(mainShell);
+    QWidget* scrollViewport = new QWidget(scrollArea);
+    QHBoxLayout* scrollViewportLayout = new QHBoxLayout(scrollViewport);
+    scrollViewportLayout->setContentsMargins(20, 0, 20, 0);
+    scrollViewportLayout->setSpacing(0);
+
+    m_leftStretchSpacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    m_rightStretchSpacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    m_mainInner = new QWidget(scrollViewport);
     m_mainInner->setMaximumWidth(kMaxContentWidth);
     m_mainInner->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     QVBoxLayout* mainInnerLayout = new QVBoxLayout(m_mainInner);
@@ -158,61 +166,70 @@ void MainWindow::setupUi()
     mainInnerLayout->setSpacing(16);
 
     m_stack = new QStackedWidget(this);
+
+    // --- 页面注册表：替代 switch 硬编码 ---
     m_overviewPage = new OverviewPage(this);
-    m_stack->addWidget(m_overviewPage);
+    m_pageRefreshers[m_stack->addWidget(m_overviewPage)] = [this]() { m_overviewPage->refresh(); };
+
     m_coursesPage = new CoursesPage(this);
-    m_stack->addWidget(m_coursesPage);
+    m_pageRefreshers[m_stack->addWidget(m_coursesPage)] = [this]() { m_coursesPage->refresh(); };
+
     m_rolesPage = new RolesPage(this);
-    m_stack->addWidget(m_rolesPage);
+    m_pageRefreshers[m_stack->addWidget(m_rolesPage)] = [this]() { m_rolesPage->refresh(); };
+
     m_achievementsPage = new AchievementsPage(this);
-    m_stack->addWidget(m_achievementsPage);
+    m_pageRefreshers[m_stack->addWidget(m_achievementsPage)] = [this]() { m_achievementsPage->refresh(); };
+
     m_experiencesPage = new ExperiencesPage(this);
-    m_stack->addWidget(m_experiencesPage);
+    m_pageRefreshers[m_stack->addWidget(m_experiencesPage)] = [this]() { m_experiencesPage->refresh(); };
+
     m_activitiesPage = new ActivitiesPage(this);
-    m_stack->addWidget(m_activitiesPage);
+    m_pageRefreshers[m_stack->addWidget(m_activitiesPage)] = [this]() { m_activitiesPage->refresh(); };
+
     m_goalsPage = new GoalsPage(this);
-    m_stack->addWidget(m_goalsPage);
+    m_pageRefreshers[m_stack->addWidget(m_goalsPage)] = [this]() { m_goalsPage->refresh(); };
+
     m_jobsPage = new JobsPage(this);
-    m_stack->addWidget(m_jobsPage);
+    m_pageRefreshers[m_stack->addWidget(m_jobsPage)] = [this]() { m_jobsPage->refresh(); };
+
     m_analysisPage = new AnalysisPage(this);
-    m_stack->addWidget(m_analysisPage);
+    m_pageRefreshers[m_stack->addWidget(m_analysisPage)] = [this]() { m_analysisPage->refresh(); };
+
     m_timelinePage = new TimelinePage(this);
-    m_stack->addWidget(m_timelinePage);
+    m_pageRefreshers[m_stack->addWidget(m_timelinePage)] = [this]() { m_timelinePage->refresh(); };
+
     m_resumePage = new ResumePage(this);
-    m_stack->addWidget(m_resumePage);
+    m_pageRefreshers[m_stack->addWidget(m_resumePage)] = [this]() { m_resumePage->refresh(); };
+
     m_importsPage = new ImportsPage(this);
-    m_stack->addWidget(m_importsPage);
+    m_pageRefreshers[m_stack->addWidget(m_importsPage)] = [this]() { m_importsPage->refresh(); };
+
     mainInnerLayout->addWidget(m_stack, 1);
 
-    QScrollArea* scrollArea = new QScrollArea(mainShell);
-    scrollArea->setObjectName("mainScrollArea");
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setFrameShape(QFrame::NoFrame);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scrollArea->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    QWidget* scrollViewport = new QWidget(scrollArea);
-    QHBoxLayout* scrollViewportLayout = new QHBoxLayout(scrollViewport);
-    scrollViewportLayout->setContentsMargins(20, 0, 20, 0);
-    scrollViewportLayout->setSpacing(0);
-    m_leftStretchSpacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
-    m_rightStretchSpacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
     scrollViewportLayout->addSpacerItem(m_leftStretchSpacer);
     scrollViewportLayout->addWidget(m_mainInner, 0, Qt::AlignTop);
     scrollViewportLayout->addSpacerItem(m_rightStretchSpacer);
     scrollArea->setWidget(scrollViewport);
     scrollArea->setStyleSheet("QScrollArea { background: transparent; border: none; }");
-    mainShellLayout->addWidget(scrollArea, 1);
-    contentLayout->addWidget(mainShell, 1);
+    contentLayout->addWidget(scrollArea, 1);
 
     rootLayout->addWidget(contentShell, 1);
 
+    // --- AI面板：默认收起 ---
     m_aiPanel = new AiPanelWidget(this);
+    m_aiPanel->setMinimumWidth(50);
+    m_aiPanel->setMaximumWidth(50);
+    // 直接设置初始收起状态（隐藏内容区，显示折叠条）
+    auto* collapsedStrip = m_aiPanel->findChild<QWidget*>("aiCollapsedStrip");
+    auto* panelContent = m_aiPanel->findChild<QWidget*>("aiPanelContent");
+    if (collapsedStrip) collapsedStrip->show();
+    if (panelContent) panelContent->hide();
     rootLayout->addWidget(m_aiPanel);
 
     setCentralWidget(centralWidget);
 
     m_shellController->attach(m_stack, m_mainInner, m_leftStretchSpacer, m_rightStretchSpacer,
-                               m_topbarKicker, m_topbarTitle, m_topbarPill);
+                               m_topbarKicker, m_topbarTitle, nullptr);
 
     m_refreshCoordinator->bindPages(
         m_overviewPage, m_coursesPage, m_rolesPage, m_achievementsPage,
@@ -220,7 +237,6 @@ void MainWindow::setupUi()
         m_analysisPage, m_timelinePage, m_resumePage, m_importsPage);
     m_refreshCoordinator->connectSignals();
 
-    // NOTE: bindWidgets is called in the constructor after setupStatusBar/setupSystemTray
     connect(m_backendController, &BackendRuntimeController::backendReady, this, &MainWindow::onBackendReady);
     connect(m_backendController, &BackendRuntimeController::serverError, this, &MainWindow::onBackendError);
 
@@ -228,97 +244,6 @@ void MainWindow::setupUi()
     m_aiMediator->attachPanel(m_aiPanel);
 
     connect(m_sidebar->navigationList(), &QListWidget::currentRowChanged, this, &MainWindow::onNavigationChanged);
-
-    connect(m_aiPanel, &AiPanelWidget::applyToResumeRequested, this, [this](const QString& summary) {
-        if (!m_resumePage) {
-            ToastNotification::display(this, "简历配置区尚未准备好。");
-            return;
-        }
-        if (summary.isEmpty()) {
-            ToastNotification::display(this, "请先生成一段 AI 建议。");
-            return;
-        }
-        if (m_sidebar && m_sidebar->navigationList()) {
-            m_sidebar->navigationList()->setCurrentRow(10);
-        }
-        m_resumePage->refresh();
-        ToastNotification::display(this, "已将 AI 建议写入简历摘要，你可以继续在简历页微调。");
-    });
-
-    connect(m_aiPanel, &AiPanelWidget::createGoalRequested, this, [this](const QString& title, const QString& description) {
-        if (description.isEmpty()) {
-            ToastNotification::display(this, "请先生成一段 AI 建议。");
-            return;
-        }
-
-        GoalEditorDialog dialog(this);
-        dialog.setWindowTitle("从 AI 建议生成目标");
-        Goal draft;
-        draft.title = title.isEmpty() ? "AI 建议跟进目标" : title;
-        draft.category = "General";
-        draft.description = description;
-        draft.targetValue = 1;
-        draft.currentValue = 0;
-        draft.unit = "项";
-        draft.priority = "High";
-        draft.status = "In Progress";
-        dialog.setGoal(draft);
-        if (dialog.exec() != QDialog::Accepted) {
-            return;
-        }
-
-        Goal goal = dialog.goal();
-        const Goal created = GoalService::create(goal);
-        if (created.id == 0) {
-            ToastNotification::display(this, "未能根据 AI 建议创建目标。");
-            return;
-        }
-
-        if (m_sidebar && m_sidebar->navigationList()) {
-            m_sidebar->navigationList()->setCurrentRow(6);
-        }
-        m_refreshCoordinator->refreshByDomain(DataDomain::Goals);
-        ToastNotification::display(this, "已根据 AI 建议生成目标草稿。");
-    });
-
-    connect(m_aiPanel, &AiPanelWidget::analysisRequested, this, [this](const QString& type) {
-        m_aiPanel->setOutput("正在分析中，请稍候...");
-        QApplication::processEvents();
-        QApplication::setOverrideCursor(Qt::WaitCursor);
-        QJsonObject payload;
-        payload["type"] = type;
-        const QJsonObject result = AiService::analyze(payload);
-        QApplication::restoreOverrideCursor();
-
-        QStringList lines;
-        lines << QString("分析类型：%1").arg(type);
-        lines << QString("AI 模式：%1").arg(result["aiPowered"].toBool() ? "模型分析" : "大模型不可用");
-        if (result.contains("error") && !result["error"].toString().isEmpty()) {
-            lines << "";
-            lines << QString("错误：%1").arg(result["error"].toString());
-        }
-
-        const QJsonArray suggestions = result["suggestions"].toArray();
-        if (!suggestions.isEmpty()) {
-            lines << "";
-            lines << "建议：";
-            for (const auto& item : suggestions) {
-                lines << QString("- %1").arg(item.toString());
-            }
-        } else if (result.contains("analysis") && !result["analysis"].toString().isEmpty()) {
-            lines << "";
-            lines << result["analysis"].toString();
-        } else if (result.contains("reply") && !result["reply"].toString().isEmpty()) {
-            lines << "";
-            lines << result["reply"].toString();
-        } else {
-            lines << "";
-            lines << "当前没有返回建议内容。";
-        }
-
-        m_aiPanel->setOutput(lines.join('\n'));
-        m_aiPanel->refreshStatus();
-    });
 
     connect(m_aiPanel, &AiPanelWidget::chatMessageSent, this, [this](const QString& message) {
         m_aiPanel->setOutput("AI 正在思考中...");
@@ -394,6 +319,7 @@ void MainWindow::setupStatusBar()
     m_progressBar->setRange(0, 0);
     m_progressBar->setTextVisible(false);
     statusBar()->addPermanentWidget(m_progressBar);
+    statusBar()->hide();
 }
 
 void MainWindow::setupSystemTray()
@@ -462,27 +388,16 @@ void MainWindow::onNavigationChanged(int row)
             });
             anim->start(QAbstractAnimation::DeleteWhenStopped);
         }
-        refreshCurrentPage();
+        QTimer::singleShot(0, this, &MainWindow::refreshCurrentPage);
     }
 }
 
 void MainWindow::refreshCurrentPage()
 {
     const int index = m_stack ? m_stack->currentIndex() : 0;
-    switch (index) {
-    case 0: if (m_overviewPage) m_overviewPage->refresh(); break;
-    case 1: if (m_coursesPage) m_coursesPage->refresh(); break;
-    case 2: if (m_rolesPage) m_rolesPage->refresh(); break;
-    case 3: if (m_achievementsPage) m_achievementsPage->refresh(); break;
-    case 4: if (m_experiencesPage) m_experiencesPage->refresh(); break;
-    case 5: if (m_activitiesPage) m_activitiesPage->refresh(); break;
-    case 6: if (m_goalsPage) m_goalsPage->refresh(); break;
-    case 7: if (m_jobsPage) m_jobsPage->refresh(); break;
-    case 8: if (m_analysisPage) m_analysisPage->refresh(); break;
-    case 9: if (m_timelinePage) m_timelinePage->refresh(); break;
-    case 10: if (m_resumePage) m_resumePage->refresh(); break;
-    case 11: if (m_importsPage) m_importsPage->refresh(); break;
-    default: break;
+    auto it = m_pageRefreshers.find(index);
+    if (it != m_pageRefreshers.end()) {
+        it.value()();
     }
     if (m_aiPanel) {
         m_aiPanel->refreshStatus();
@@ -549,6 +464,11 @@ void MainWindow::closeEvent(QCloseEvent* event)
     qApp->quit();
 }
 
+bool MainWindow::eventFilter(QObject* watched, QEvent* event)
+{
+    return QMainWindow::eventFilter(watched, event);
+}
+
 void MainWindow::applyWindowStyle()
 {
     setStyleSheet(R"(
@@ -581,6 +501,11 @@ void MainWindow::applyWindowStyle()
             color: #8a7d70;
             background: transparent;
             font-size: 13px;
+        }
+        #topbarPill:hover {
+            background: #f4ede2;
+            color: #2f8f86;
+            border-color: #b8d4d2;
         }
         #brandMark, #sidebarInfoAvatar {
             min-width: 28px;
@@ -769,8 +694,8 @@ void MainWindow::applyWindowStyle()
             border: 1px solid #d7cab8;
             border-radius: 8px;
             background: #fffdf9;
-            selection-background-color: #f4ede2;
-            selection-color: #2d241c;
+            selection-background-color: #4a90e2;
+            selection-color: #ffffff;
             padding: 4px;
         }
         QLineEdit:focus, QComboBox:focus {

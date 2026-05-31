@@ -31,9 +31,10 @@ void StudentInfoCard::setupUi()
     layout->setContentsMargins(8, 6, 8, 6);
     layout->setSpacing(8);
 
-    m_avatar = new QLabel("S", this);
+    m_avatar = new QLabel("👤", this);
     m_avatar->setObjectName("sidebarInfoAvatar");
     m_avatar->setAttribute(Qt::WA_TransparentForMouseEvents);
+    m_avatar->setToolTip("学生信息");
     layout->addWidget(m_avatar, 0, Qt::AlignTop);
 
     m_textWidget = new QWidget(this);

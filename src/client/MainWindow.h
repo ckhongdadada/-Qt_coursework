@@ -5,6 +5,7 @@
 #include <QCloseEvent>
 #include <QLabel>
 #include <QMainWindow>
+#include <QMap>
 #include <QMenu>
 #include <QProgressBar>
 #include <QSpacerItem>
@@ -12,6 +13,8 @@
 #include <QSystemTrayIcon>
 #include <QToolBar>
 #include <QWidget>
+
+#include <functional>
 
 class SidebarWidget;
 class AiPanelWidget;
@@ -56,6 +59,7 @@ private slots:
 
 protected:
     void closeEvent(QCloseEvent* event) override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
     void setupUi();
@@ -103,6 +107,9 @@ private:
     DataRefreshCoordinator* m_refreshCoordinator = nullptr;
     BackendRuntimeController* m_backendController = nullptr;
     AiContextMediator* m_aiMediator = nullptr;
+
+    // 页面注册表：替代 switch 硬编码
+    QMap<int, std::function<void()>> m_pageRefreshers;
 };
 
 #endif // MAINWINDOW_H
