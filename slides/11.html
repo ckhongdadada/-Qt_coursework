@@ -1,0 +1,37 @@
+<div class="slide-inner" style="height: 100%; display: flex; flex-direction: column; padding: 24px 48px 16px;">
+    <!-- Header -->
+    <div style="font-size: 0.85rem; font-weight: 700; color: #2563eb; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">METHODOLOGY : INNOVATIVE SSL</div>
+    <div style="height: 3px; width: 40px; background: #2563eb; margin-bottom: 16px;"></div>
+    <h1 style="font-size: 2rem; font-weight: 800; color: #1e293b; margin-top: 0; margin-bottom: 24px;">创新 SSL：尾部感知伪标签分布去偏</h1>
+
+    <!-- Cards -->
+    <div style="display: flex; gap: 24px; flex: 1;">
+        <!-- Card 1 -->
+        <div style="flex: 1; background: #f8fafc; border-radius: 12px; padding: 24px; border-top: 4px solid #ef4444; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+            <div style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin-bottom: 16px;">传统 SSL 的“劫贫济富”</div>
+            <p style="font-size: 0.95rem; color: #475569; line-height: 1.6; flex: 1;">
+                在极度长尾场景中，由于头部样本基数庞大且特征强势，传统 SSL（固定阈值 &tau;）会生成极其庞大的头部伪标签；而尾部类的置信度难以跨越门槛。这加剧了马太效应，导致前文提到的“负优化”。
+            </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div style="flex: 1; background: #f8fafc; border-radius: 12px; padding: 24px; border-top: 4px solid #f59e0b; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+            <div style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin-bottom: 16px;">创新：类别感知阈值 (Class-Aware Thresholding)</div>
+            <p style="font-size: 0.95rem; color: #475569; line-height: 1.6; flex: 1;">
+                为打破确认偏差，我们废弃了全局静态阈值，引入了<strong>类别感知动态阈值机制</strong>。通过实时评估每个类别的预测频率：对强势的头部类<strong>提高门槛</strong>，对弱势的尾部类<strong>降低门槛</strong>，强行保障尾部样本的召回率。
+            </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div style="flex: 1; background: #f8fafc; border-radius: 12px; padding: 24px; border-top: 4px solid #10b981; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+            <div style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin-bottom: 16px;">创新：分布对齐 (Distribution Alignment)</div>
+            <p style="font-size: 0.95rem; color: #475569; line-height: 1.6; flex: 1;">
+                在软标签层面，我们加入额外的约束项，强制要求伪标签的宏观统计分布向“平衡分布”或“已知标注分布”对齐（Alignment）。这从根本上纠正了伪标签分布的极化坍塌，拯救了尾部特征。
+            </p>
+        </div>
+    </div>
+
+    <div style="margin-top: 24px; background: rgba(16,185,129,0.05); border-radius: 8px; padding: 16px; border-left: 4px solid #10b981;">
+        <span style="font-size: 0.95rem; color: #065f46;"><strong>核心价值：</strong>单独应用此去偏 SSL 策略，即彻底扭转了基线 SSL 的负优化陷阱，在 &rho;=50 时独立贡献了 <strong>+18.3%</strong> 的巨额增益。</span>
+    </div>
+</div>

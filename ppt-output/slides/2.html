@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>研究背景与动机</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+
+:root {
+  /* Background */
+  --bg-primary: #ffffff;
+  --bg-gradient-to: #f6f8fb;
+
+  /* Card */
+  --card-from: #ffffff;
+  --card-to: #f6f8fb;
+  --card-border: rgba(10,29,58,0.06);
+  --card-radius: 12px;
+
+  /* Text */
+  --text-primary: #0a1d3a;
+  --text-secondary: #64748b;
+
+  /* Accent */
+  --accent-primary: #2563EB;
+  --accent-primary-dark: #1D4ED8;
+  --accent-secondary: #059669;
+
+  /* Typography */
+  --font-display: -apple-system, 'SF Pro Display', 'Inter Tight', 'Inter', BlinkMacSystemFont, sans-serif;
+  --font-body: -apple-system, 'SF Pro Text', 'Inter', sans-serif;
+  --font-serif: 'Instrument Serif', 'Fraunces', Georgia, serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+
+  /* Letter Spacing */
+  --ls-display: -0.042em;
+  --ls-headline: -0.02em;
+  --ls-body: -0.005em;
+  --ls-label: 0.22em;
+}
+
+
+/* Reset & Base */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.slide {
+  width: 1280px;
+  height: 720px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  font-feature-settings: 'kern', 'liga', 'calt', 'ss01', 'cv11', 'ccmp';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Top accent bar - subtle */
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-dark));
+  opacity: 0.8;
+}
+
+/* Page header with dot-pulse label */
+.page-header {
+  padding: 48px 64px 0;
+}
+
+.page-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 16px;
+}
+
+.page-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  line-height: 1.2;
+}
+
+/* Serif italic for emphasis */
+.page-title em,
+.highlight em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-primary);
+}
+
+/* Header divider */
+.header-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--card-border);
+  margin: 20px 0;
+}
+
+/* Content area */
+.content {
+  padding: 24px 64px 48px;
+  flex: 1;
+}
+
+/* Cards grid - Bento style */
+.cards-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.cards-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cards-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.cards-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Card - Apple minimal */
+.card {
+  background: linear-gradient(135deg, var(--card-from), var(--card-to));
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  margin-bottom: 8px;
+}
+
+.card-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: var(--ls-body);
+  line-height: 1.6;
+}
+
+/* Data numbers - tabular-nums */
+.data-number {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums proportional-nums;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.data-number.large {
+  font-size: 48px;
+  letter-spacing: var(--ls-display);
+}
+
+.data-number.medium {
+  font-size: 32px;
+  letter-spacing: var(--ls-headline);
+}
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.data-table td {
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Page number */
+.page-number {
+  position: absolute;
+  bottom: 24px;
+  right: 48px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Corner decoration lines - Apple style */
+.corner-lines {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.corner-lines::before,
+.corner-lines::after {
+  content: '';
+  position: absolute;
+  background: var(--accent-primary);
+  opacity: 0.15;
+}
+
+.corner-lines::before {
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 20px;
+}
+
+.corner-lines::after {
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 1px;
+}
+
+/* Inner frame - subtle border */
+.inner-frame {
+  position: absolute;
+  inset: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Hexagon decorations - minimal */
+.hex-decoration {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.08;
+}
+
+/* Formulas */
+.formula-block {
+  background: var(--bg-gradient-to);
+  border-left: 3px solid var(--accent-primary);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+
+.formula {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+/* KaTeX overrides */
+.katex { font-size: 1em; }
+.katex-display { margin: 0; }
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+</style>
+</head>
+<body>
+
+<section id="slide-2" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">RESEARCH BACKGROUND</div>
+    <h1 class="page-title">研究背景与动机</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="slide-root">
+        <!-- Top accent bar -->
+        <div class="top-bar"></div>
+
+        <!-- Main content -->
+        <div class="content-wrapper">
+            <!-- Page header -->
+            <div class="page-header">
+                <div class="header-label">RESEARCH BACKGROUND</div>
+                <div class="header-separator"></div>
+                <h1 class="slide-title">研究背景与动机</h1>
+            </div>
+
+            <!-- Cards grid -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-title">长尾分布的普遍性</div>
+                    <div class="card-body">医疗诊断、缺陷检测、罕见事件识别等场景中，数据呈严重长尾分布，头尾类样本比可达100:1</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">标注成本高昂</div>
+                    <div class="card-body">高质量标注需领域专家参与，获取成本高昂，如何在低标注预算下有效学习成为关键</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">现有方法的局限</div>
+                    <div class="card-body">主动学习(AL)减少标注成本，半监督学习(SSL)利用未标注数据，但现有研究大多假设数据均衡</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hexagon decorations (bottom right) -->
+        <div class="hexagons-decoration">
+            <svg width="280" height="200" viewBox="0 0 280 200" fill="none">
+                <!-- Hexagon 1: side=35px, centered at (80, 120) -->
+                <polygon points="115,120 97.5,150.3 62.5,150.3 45,120 62.5,89.7 97.5,89.7" stroke="#2563EB" stroke-width="1" opacity="0.28"/>
+                <!-- Hexagon 2: side=25px, centered at (160, 80) -->
+                <polygon points="185,80 172.5,101.7 147.5,101.7 135,80 147.5,58.3 172.5,58.3" stroke="#2563EB" stroke-width="1" opacity="0.25"/>
+                <!-- Hexagon 3: side=40px, centered at (220, 150), partially outside -->
+                <polygon points="260,150 240,184.6 200,184.6 180,150 200,115.4 240,115.4" stroke="#2563EB" stroke-width="1" opacity="0.30"/>
+                <!-- Hexagon 4: side=18px, centered at (50, 60) -->
+                <polygon points="68,60 59,75.6 41,75.6 32,60 41,44.4 59,44.4" stroke="#2563EB" stroke-width="1" opacity="0.27"/>
+                <!-- Hexagon 5: side=22px, centered at (130, 170), partially outside -->
+                <polygon points="152,170 141,189.1 119,189.1 108,170 119,150.9 141,150.9" stroke="#2563EB" stroke-width="1" opacity="0.32"/>
+            </svg>
+        </div>
+
+        <!-- Page number -->
+        <div class="page-number">2 / 20</div>
+    </div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">2 / 20</div>
+</section>
+
+</body>
+</html>

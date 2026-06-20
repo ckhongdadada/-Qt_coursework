@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习曲线：前三轮局部放大</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+
+:root {
+  /* Background */
+  --bg-primary: #ffffff;
+  --bg-gradient-to: #f6f8fb;
+
+  /* Card */
+  --card-from: #ffffff;
+  --card-to: #f6f8fb;
+  --card-border: rgba(10,29,58,0.06);
+  --card-radius: 12px;
+
+  /* Text */
+  --text-primary: #0a1d3a;
+  --text-secondary: #64748b;
+
+  /* Accent */
+  --accent-primary: #2563EB;
+  --accent-primary-dark: #1D4ED8;
+  --accent-secondary: #059669;
+
+  /* Typography */
+  --font-display: -apple-system, 'SF Pro Display', 'Inter Tight', 'Inter', BlinkMacSystemFont, sans-serif;
+  --font-body: -apple-system, 'SF Pro Text', 'Inter', sans-serif;
+  --font-serif: 'Instrument Serif', 'Fraunces', Georgia, serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+
+  /* Letter Spacing */
+  --ls-display: -0.042em;
+  --ls-headline: -0.02em;
+  --ls-body: -0.005em;
+  --ls-label: 0.22em;
+}
+
+
+/* Reset & Base */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.slide {
+  width: 1280px;
+  height: 720px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  font-feature-settings: 'kern', 'liga', 'calt', 'ss01', 'cv11', 'ccmp';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Top accent bar - subtle */
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-dark));
+  opacity: 0.8;
+}
+
+/* Page header with dot-pulse label */
+.page-header {
+  padding: 48px 64px 0;
+}
+
+.page-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 16px;
+}
+
+.page-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  line-height: 1.2;
+}
+
+/* Serif italic for emphasis */
+.page-title em,
+.highlight em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-primary);
+}
+
+/* Header divider */
+.header-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--card-border);
+  margin: 20px 0;
+}
+
+/* Content area */
+.content {
+  padding: 24px 64px 48px;
+  flex: 1;
+}
+
+/* Cards grid - Bento style */
+.cards-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.cards-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cards-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.cards-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Card - Apple minimal */
+.card {
+  background: linear-gradient(135deg, var(--card-from), var(--card-to));
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  margin-bottom: 8px;
+}
+
+.card-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: var(--ls-body);
+  line-height: 1.6;
+}
+
+/* Data numbers - tabular-nums */
+.data-number {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums proportional-nums;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.data-number.large {
+  font-size: 48px;
+  letter-spacing: var(--ls-display);
+}
+
+.data-number.medium {
+  font-size: 32px;
+  letter-spacing: var(--ls-headline);
+}
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.data-table td {
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Page number */
+.page-number {
+  position: absolute;
+  bottom: 24px;
+  right: 48px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Corner decoration lines - Apple style */
+.corner-lines {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.corner-lines::before,
+.corner-lines::after {
+  content: '';
+  position: absolute;
+  background: var(--accent-primary);
+  opacity: 0.15;
+}
+
+.corner-lines::before {
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 20px;
+}
+
+.corner-lines::after {
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 1px;
+}
+
+/* Inner frame - subtle border */
+.inner-frame {
+  position: absolute;
+  inset: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Hexagon decorations - minimal */
+.hex-decoration {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.08;
+}
+
+/* Formulas */
+.formula-block {
+  background: var(--bg-gradient-to);
+  border-left: 3px solid var(--accent-primary);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+
+.formula {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+/* KaTeX overrides */
+.katex { font-size: 1em; }
+.katex-display { margin: 0; }
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+</style>
+</head>
+<body>
+
+<section id="slide-16" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">SECTION</div>
+    <h1 class="page-title">学习曲线：前三轮局部放大</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+
+<div class="slide-root">
+  <!-- Header -->
+  <div class="slide-header">
+    <h1 class="slide-title">学习曲线：前三轮局部放大</h1>
+    <span class="slide-subtitle">ρ=50 · seed=42</span>
+  </div>
+  <div class="separator"></div>
+
+  <!-- Body: two-column -->
+  <div class="slide-body">
+    <!-- Left: zoomed learning curve image -->
+    <div class="content-left">
+      <img src="file:///C%3A/Users/28414/.qoderworkcn/workspace/mqheghbjv6zuvrff/ai-slides/assets/learning_curve_rho50_zoomed.png" alt="ρ=50 前三轮局部放大学习曲线">
+    </div>
+
+    <!-- Right: data table + insight -->
+    <div class="content-right">
+      <!-- Data table -->
+      <div>
+        <div class="table-label">逐轮 F1 分数对比</div>
+        <div class="data-table">
+          <div class="t-row t-header">
+            <div class="t-cell t-label">轮次</div>
+            <div class="t-cell">Entropy</div>
+            <div class="t-cell">Class-Aware</div>
+            <div class="t-cell">Δ</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R1</div>
+            <div class="t-cell">0.098</div>
+            <div class="t-cell">0.093</div>
+            <div class="t-cell t-delta-neg">-0.005</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R2</div>
+            <div class="t-cell">0.105</div>
+            <div class="t-cell">0.079</div>
+            <div class="t-cell t-delta-neg">-0.026</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R3</div>
+            <div class="t-cell">0.116</div>
+            <div class="t-cell">0.111</div>
+            <div class="t-cell t-delta-neg">-0.005</div>
+          </div>
+          <div class="t-row t-crossover">
+            <div class="t-cell t-label">R4</div>
+            <div class="t-cell">0.135</div>
+            <div class="t-cell">0.161</div>
+            <div class="t-cell t-delta-pos">+0.026</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R5</div>
+            <div class="t-cell">0.179</div>
+            <div class="t-cell">0.192</div>
+            <div class="t-cell t-delta-pos">+0.013</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R10</div>
+            <div class="t-cell">0.243</div>
+            <div class="t-cell">0.281</div>
+            <div class="t-cell t-delta-pos">+0.039</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;margin-top:6px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;">
+            <path d="M7 1L13 4.5V9.5L7 13L1 9.5V4.5L7 1Z" stroke="#2563EB" stroke-width="1" fill="rgba(37,99,235,0.08)"/>
+          </svg>
+          <span class="crossover-badge">R4 = 交叉点</span>
+        </div>
+      </div>
+
+      <!-- Insight card -->
+      <div class="insight-card">
+        <div class="insight-heading">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="7.5" stroke="#2563EB" stroke-width="1.2" fill="none"/>
+            <path d="M9 5v4M9 11.5v1" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          核心发现
+        </div>
+        <div class="insight-text">
+          前3轮策略差异小 → 第4轮起 <span class="highlight">Class-Aware 反超</span> → 差距持续扩大至 <span class="highlight">+16%（R10）</span>，体现尾类感知采样的<span class="highlight">延迟收益效应</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page number -->
+  <div class="page-number">16 / 20</div>
+
+  <!-- Decorative hexagons (styleGuide) -->
+  <div class="hex-deco hex-deco-1"></div>
+  <div class="hex-deco hex-deco-2"></div>
+  <div class="hex-deco hex-deco-3"></div>
+</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">16 / 20</div>
+</section>
+
+</body>
+</html>

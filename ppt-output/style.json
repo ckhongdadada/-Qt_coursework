@@ -1,0 +1,32 @@
+{
+  "style_id": "blue_white",
+  "style_name": "蓝白商务 (Blue White, Apple-grade)",
+  "category": "light_premium",
+  "inspiration": "Apple 企业页面 / 苹果开发者文档",
+  "mood_keywords": ["极简白", "雪松灰", "苹果可信赖感", "内框线条"],
+  "design_soul": "纯净的白纸上，淡蓝色像一缕信任的微光，所有文字都谨慎而克制，像一份签了名的协议。",
+  "variation_strategy": "封面用大留白 + 细蓝线，章节页用淡蓝色色块 + serif italic，数据页用 4 张极简卡片 + tabular-nums。",
+  "decoration_dna": {
+    "signature_move": "Apple 级极简白 + 内框淡线 + 蓝色脉冲圆点 label + serif italic 关键词混排 + 大量留白",
+    "forbidden": ["饱和橙红", "暗色背景", "渐变文字", "霓虹效果", "卡通元素", "拥挤布局"],
+    "recommended_combos": ["内框线 + 蓝色 label + 大留白", "三栏数据卡 + 横线分隔 + tabular-nums"]
+  },
+  "background": { "primary": "#ffffff", "gradient_to": "#f6f8fb", "texture": { "type": "none" } },
+  "card": { "gradient_from": "#ffffff", "gradient_to": "#f6f8fb", "border": "rgba(10,29,58,0.06)", "border_radius": 12, "backdrop_blur": 0 },
+  "text": { "primary": "#0a1d3a", "secondary": "#64748b", "title_size": 78, "body_size": 14, "card_title_size": 18 },
+  "accent": { "primary": ["#2563EB", "#1D4ED8"], "secondary": ["#059669", "#047857"] },
+  "typography": {
+    "display_font": "-apple-system, 'SF Pro Display', 'Inter Tight', 'Inter', BlinkMacSystemFont, sans-serif",
+    "body_font": "-apple-system, 'SF Pro Text', 'Inter', sans-serif",
+    "serif_italic_font": "'Instrument Serif', 'Fraunces', Georgia, serif",
+    "mono_font": "'SF Mono', 'JetBrains Mono', monospace",
+    "display_letter_spacing": "-0.042em",
+    "headline_letter_spacing": "-0.02em",
+    "body_letter_spacing": "-0.005em",
+    "label_letter_spacing": "0.22em",
+    "feature_settings": "'kern', 'liga', 'calt', 'ss01', 'cv11', 'ccmp'",
+    "tabular_nums": true
+  },
+  "decorations": { "label_anchor": "dot_pulse", "title_serif_italic": true, "corner_lines": true, "vertical_divider": false, "drop_cap": false, "masthead": false, "inner_frame": true },
+  "font_imports": ["https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap"]
+}

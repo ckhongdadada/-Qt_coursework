@@ -1,0 +1,2841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>低标注预算下长尾分布的主动学习与半监督学习联合策略</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<style>
+
+:root {
+  /* Background */
+  --bg-primary: #ffffff;
+  --bg-gradient-to: #f6f8fb;
+
+  /* Card */
+  --card-from: #ffffff;
+  --card-to: #f6f8fb;
+  --card-border: rgba(10,29,58,0.06);
+  --card-radius: 12px;
+
+  /* Text */
+  --text-primary: #0a1d3a;
+  --text-secondary: #64748b;
+
+  /* Accent */
+  --accent-primary: #2563EB;
+  --accent-primary-dark: #1D4ED8;
+  --accent-secondary: #059669;
+
+  /* Typography */
+  --font-display: -apple-system, 'SF Pro Display', 'Inter Tight', 'Inter', BlinkMacSystemFont, sans-serif;
+  --font-body: -apple-system, 'SF Pro Text', 'Inter', sans-serif;
+  --font-serif: 'Instrument Serif', 'Fraunces', Georgia, serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+
+  /* Letter Spacing */
+  --ls-display: -0.042em;
+  --ls-headline: -0.02em;
+  --ls-body: -0.005em;
+  --ls-label: 0.22em;
+}
+
+
+/* Reset & Base */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.slide {
+  width: 1280px;
+  height: 720px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  font-feature-settings: 'kern', 'liga', 'calt', 'ss01', 'cv11', 'ccmp';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Top accent bar - subtle */
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-dark));
+  opacity: 0.8;
+}
+
+/* Page header with dot-pulse label */
+.page-header {
+  padding: 48px 64px 0;
+}
+
+.page-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 16px;
+}
+
+.page-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  line-height: 1.2;
+}
+
+/* Serif italic for emphasis */
+.page-title em,
+.highlight em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-primary);
+}
+
+/* Header divider */
+.header-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--card-border);
+  margin: 20px 0;
+}
+
+/* Content area */
+.content {
+  padding: 24px 64px 48px;
+  flex: 1;
+}
+
+/* Cards grid - Bento style */
+.cards-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.cards-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cards-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.cards-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Card - Apple minimal */
+.card {
+  background: linear-gradient(135deg, var(--card-from), var(--card-to));
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  margin-bottom: 8px;
+}
+
+.card-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: var(--ls-body);
+  line-height: 1.6;
+}
+
+/* Data numbers - tabular-nums */
+.data-number {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums proportional-nums;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.data-number.large {
+  font-size: 48px;
+  letter-spacing: var(--ls-display);
+}
+
+.data-number.medium {
+  font-size: 32px;
+  letter-spacing: var(--ls-headline);
+}
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.data-table td {
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Page number */
+.page-number {
+  position: absolute;
+  bottom: 24px;
+  right: 48px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Corner decoration lines - Apple style */
+.corner-lines {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.corner-lines::before,
+.corner-lines::after {
+  content: '';
+  position: absolute;
+  background: var(--accent-primary);
+  opacity: 0.15;
+}
+
+.corner-lines::before {
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 20px;
+}
+
+.corner-lines::after {
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 1px;
+}
+
+/* Inner frame - subtle border */
+.inner-frame {
+  position: absolute;
+  inset: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Hexagon decorations - minimal */
+.hex-decoration {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.08;
+}
+
+/* Formulas */
+.formula-block {
+  background: var(--bg-gradient-to);
+  border-left: 3px solid var(--accent-primary);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+
+.formula {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+/* KaTeX overrides */
+.katex { font-size: 1em; }
+.katex-display { margin: 0; }
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+/* Combined preview styles */
+#stage-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+#stage {
+  width: 1280px;
+  height: 720px;
+  transform-origin: center center;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.slide-page {
+  width: 1280px;
+  height: 720px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+/* Controls */
+#controls {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  backdrop-filter: blur(20px);
+  transition: opacity .3s, transform .3s;
+  opacity: 1;
+  z-index: 100;
+}
+
+#controls.fade {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+  pointer-events: none;
+}
+
+#controls button {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #fff;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+#controls button:hover:not(:disabled) {
+  background: var(--bg-gradient-to);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+#controls button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+#counter {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  min-width: 60px;
+  text-align: center;
+}
+
+#hint {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  font-size: 11px;
+  color: rgba(0,0,0,0.3);
+  letter-spacing: 0.05em;
+}
+</style>
+</head>
+<body>
+  <div id="stage-wrap">
+    <div id="stage">
+      
+<section id="slide-1" class="slide-page">
+  <div class="inner-frame"></div>
+  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; padding:0 120px;">
+    <div class="page-label" style="margin-bottom:32px;">机器学习 · 期末大作业汇报</div>
+    <h1 style="font-family:var(--font-display); font-size:56px; font-weight:700; color:var(--text-primary); letter-spacing:var(--ls-display); text-align:center; line-height:1.15;">
+      低标注预算下的长尾分布联合学习策略研究
+    </h1>
+    <div style="width:80px; height:2px; background:var(--accent-primary); margin:32px 0;"></div>
+    <p style="font-size:18px; color:var(--text-secondary); text-align:center; letter-spacing:var(--ls-body);">
+      主动学习与半监督学习的协同框架
+    </p>
+    <p style="font-size:14px; color:var(--text-secondary); margin-top:48px; letter-spacing:var(--ls-body);">
+      作者：某某 &nbsp;|&nbsp; 指导：某老师 &nbsp;|&nbsp; 2026年6月
+    </p>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">1 / 20</div>
+</section>
+
+<section id="slide-2" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">RESEARCH BACKGROUND</div>
+    <h1 class="page-title">研究背景与动机</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="slide-root">
+        <!-- Top accent bar -->
+        <div class="top-bar"></div>
+
+        <!-- Main content -->
+        <div class="content-wrapper">
+            <!-- Page header -->
+            <div class="page-header">
+                <div class="header-label">RESEARCH BACKGROUND</div>
+                <div class="header-separator"></div>
+                <h1 class="slide-title">研究背景与动机</h1>
+            </div>
+
+            <!-- Cards grid -->
+            <div class="cards-grid">
+                <div class="card">
+                    <div class="card-title">长尾分布的普遍性</div>
+                    <div class="card-body">医疗诊断、缺陷检测、罕见事件识别等场景中，数据呈严重长尾分布，头尾类样本比可达100:1</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">标注成本高昂</div>
+                    <div class="card-body">高质量标注需领域专家参与，获取成本高昂，如何在低标注预算下有效学习成为关键</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">现有方法的局限</div>
+                    <div class="card-body">主动学习(AL)减少标注成本，半监督学习(SSL)利用未标注数据，但现有研究大多假设数据均衡</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hexagon decorations (bottom right) -->
+        <div class="hexagons-decoration">
+            <svg width="280" height="200" viewBox="0 0 280 200" fill="none">
+                <!-- Hexagon 1: side=35px, centered at (80, 120) -->
+                <polygon points="115,120 97.5,150.3 62.5,150.3 45,120 62.5,89.7 97.5,89.7" stroke="#2563EB" stroke-width="1" opacity="0.28"/>
+                <!-- Hexagon 2: side=25px, centered at (160, 80) -->
+                <polygon points="185,80 172.5,101.7 147.5,101.7 135,80 147.5,58.3 172.5,58.3" stroke="#2563EB" stroke-width="1" opacity="0.25"/>
+                <!-- Hexagon 3: side=40px, centered at (220, 150), partially outside -->
+                <polygon points="260,150 240,184.6 200,184.6 180,150 200,115.4 240,115.4" stroke="#2563EB" stroke-width="1" opacity="0.30"/>
+                <!-- Hexagon 4: side=18px, centered at (50, 60) -->
+                <polygon points="68,60 59,75.6 41,75.6 32,60 41,44.4 59,44.4" stroke="#2563EB" stroke-width="1" opacity="0.27"/>
+                <!-- Hexagon 5: side=22px, centered at (130, 170), partially outside -->
+                <polygon points="152,170 141,189.1 119,189.1 108,170 119,150.9 141,150.9" stroke="#2563EB" stroke-width="1" opacity="0.32"/>
+            </svg>
+        </div>
+
+        <!-- Page number -->
+        <div class="page-number">2 / 20</div>
+    </div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">2 / 20</div>
+</section>
+
+<section id="slide-3" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">Problem Statement</div>
+    <h1 class="page-title">核心问题提出</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="canvas">
+    <!-- Top accent bar -->
+    <div class="top-bar"></div>
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-label">Problem Statement</div>
+      <div class="header-divider"></div>
+      <h1 class="page-title">核心问题提出</h1>
+    </div>
+
+    <!-- 3 Problem Cards -->
+    <div class="cards-area">
+      <div class="card">
+        <div class="card-num-title"><span class="circled">①</span> 标准AL策略失效</div>
+        <div class="card-divider"></div>
+        <div class="card-desc">
+          <span class="term">Entropy / Margin</span> 等不确定性采样在长尾下倾向选择头类边界样本，未区分"有价值的尾类不确定性"和"噪声不确定性"
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-num-title"><span class="circled">②</span> SSL伪标签类别偏置</div>
+        <div class="card-divider"></div>
+        <div class="card-desc">
+          <span class="term">FixMatch</span> 使用统一高置信度阈值 (<span class="term">τ=0.95</span>)，尾类因训练不足难达阈值，伪标签严重偏向头类
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-num-title"><span class="circled">③</span> AL+SSL无法协同</div>
+        <div class="card-divider"></div>
+        <div class="card-desc">
+          AL选尾类标注后SSL仍无法为尾类生成有效伪标签；SSL为头类生成伪标签后AL仍重复选头类
+        </div>
+      </div>
+    </div>
+
+    <!-- Hexagon wireframe decorations — bottom right -->
+    <div class="hex-group">
+      <!-- Hexagon 1: edge 40px -->
+      <svg style="right: 0px; bottom: 28px; width: 80px; height: 70px;" viewBox="0 0 80 70" fill="none">
+        <polygon points="40,0 74.64,17.5 74.64,52.5 40,70 5.36,52.5 5.36,17.5" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.30"/>
+      </svg>
+      <!-- Hexagon 2: edge 25px -->
+      <svg style="right: 70px; bottom: 55px; width: 50px; height: 44px;" viewBox="0 0 50 44" fill="none">
+        <polygon points="25,0 46.65,11 46.65,33 25,44 3.35,33 3.35,11" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.28"/>
+      </svg>
+      <!-- Hexagon 3: edge 18px -->
+      <svg style="right: 130px; bottom: 18px; width: 36px; height: 32px;" viewBox="0 0 36 32" fill="none">
+        <polygon points="18,0 33.59,8 33.59,24 18,32 2.41,24 2.41,8" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.25"/>
+      </svg>
+      <!-- Hexagon 4: edge 30px -->
+      <svg style="right: 0px; bottom: 110px; width: 60px; height: 52px;" viewBox="0 0 60 52" fill="none">
+        <polygon points="30,0 55.98,13 55.98,39 30,52 4.02,39 4.02,13" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.27"/>
+      </svg>
+      <!-- Hexagon 5: edge 15px -->
+      <svg style="right: 95px; bottom: 115px; width: 30px; height: 26px;" viewBox="0 0 30 26" fill="none">
+        <polygon points="15,0 27.99,6.5 27.99,19.5 15,26 2.01,19.5 2.01,6.5" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.33"/>
+      </svg>
+    </div>
+
+    <!-- Page number -->
+    <div class="page-number">3 / 20</div>
+  </div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">3 / 20</div>
+</section>
+
+<section id="slide-4" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">EXPERIMENT SETUP</div>
+    <h1 class="page-title">实验设置与数据构造</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+<div class="canvas">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-label">EXPERIMENT SETUP</div>
+    <div class="header-line"></div>
+    <h1 class="slide-title">实验设置与数据构造</h1>
+  </div>
+
+  <!-- Content -->
+  <div class="content-grid">
+    <!-- Left: Data Construction -->
+    <div class="left-col">
+      <div class="sub-heading">长尾数据构造</div>
+
+      <div class="formula-block">
+        <div class="formula">$n_c = n_{\max} \cdot \rho^{\,-c/(C-1)}$</div>
+        <div class="formula-note"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>∈</mo><mo stretchy="false">{</mo><mn>1</mn><mo separator="true">,</mo><mn>5</mn><mo separator="true">,</mo><mn>10</mn><mo separator="true">,</mo><mn>20</mn><mo separator="true">,</mo><mn>50</mn><mo separator="true">,</mo><mn>100</mn><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">\rho \in \{1, 5, 10, 20, 50, 100\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ρ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">5</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">10</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">20</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">50</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">100</span><span class="mclose">}</span></span></span></span> &nbsp; <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mn>10</mn></mrow><annotation encoding="application/x-tex">C = 10</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">10</span></span></span></span> &nbsp; <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>max</mi><mo>⁡</mo></msub><mo>=</mo><mn>5000</mn></mrow><annotation encoding="application/x-tex">n_{\max} = 5000</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">a</span><span class="mtight">x</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">5000</span></span></span></span></div>
+      </div>
+
+      <div class="data-table">
+        <div class="table-header-row">
+          <div class="table-cell"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi></mrow><annotation encoding="application/x-tex">\rho</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ρ</span></span></span></span></div>
+          <div class="table-cell">头类样本</div>
+          <div class="table-cell">尾类样本</div>
+          <div class="table-cell">总计</div>
+        </div>
+        <div class="table-data-row">
+          <div class="table-cell rho">1</div>
+          <div class="table-cell">5,000</div>
+          <div class="table-cell">5,000</div>
+          <div class="table-cell">50,000</div>
+        </div>
+        <div class="table-data-row">
+          <div class="table-cell rho">10</div>
+          <div class="table-cell">5,000</div>
+          <div class="table-cell">500</div>
+          <div class="table-cell">15,250</div>
+        </div>
+        <div class="table-data-row">
+          <div class="table-cell rho">50</div>
+          <div class="table-cell">5,000</div>
+          <div class="table-cell">100</div>
+          <div class="table-cell">4,472</div>
+        </div>
+        <div class="table-data-row">
+          <div class="table-cell rho">100</div>
+          <div class="table-cell">5,000</div>
+          <div class="table-cell">50</div>
+          <div class="table-cell">3,175</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Info Blocks -->
+    <div class="right-col">
+      <!-- Annotation Budget -->
+      <div class="info-block">
+        <div class="info-label">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L11 7H16L12 10.5L13.5 16L9 12.5L4.5 16L6 10.5L2 7H7L9 2Z" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+          标注预算
+        </div>
+        <div class="big-number">1,100</div>
+        <div class="info-desc">初始 100 + 每轮 100 &times; 10 轮主动学习</div>
+      </div>
+
+      <!-- Model Architecture -->
+      <div class="info-block">
+        <div class="info-label">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="1" stroke="currentColor" stroke-width="1"/><line x1="2" y1="7" x2="16" y2="7" stroke="currentColor" stroke-width="0.8"/><line x1="2" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="0.8"/><line x1="7" y1="2" x2="7" y2="16" stroke="currentColor" stroke-width="0.8"/></svg>
+          模型架构
+        </div>
+        <div class="info-value"><strong>SimpleCNN</strong>（3层卷积，1.1M 参数）</div>
+        <div class="info-sub">+ ResNet-18 交叉验证</div>
+      </div>
+
+      <!-- Evaluation Metrics -->
+      <div class="info-block">
+        <div class="info-label">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><polyline points="2,14 6,8 10,11 16,4" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="4" r="2" stroke="currentColor" stroke-width="0.8" fill="none"/></svg>
+          评估指标
+        </div>
+        <div class="metrics-row">
+          <div class="metric-chip primary">Macro-F1</div>
+          <div class="metric-chip">Accuracy</div>
+          <div class="metric-chip">Per-class F1</div>
+        </div>
+        <div class="info-sub" style="margin-top:10px;">Macro-F1 为主指标，衡量类别均衡性能</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hexagon decorations (3-5 wireframe hexagons, stroke #2563EB, 1px, no fill, opacity 0.25-0.35) -->
+  <svg class="hex-group" width="220" height="180" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="65,22 52.5,43.7 27.5,43.7 15,22 27.5,0.3 52.5,0.3" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.28"/>
+    <polygon points="128,35 119,50.6 101,50.6 92,35 101,19.4 119,19.4" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.25"/>
+    <polygon points="195,75 177.5,105.3 142.5,105.3 125,75 142.5,44.7 177.5,44.7" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.32"/>
+    <polygon points="90,110 80,127.3 60,127.3 50,110 60,92.7 80,92.7" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.26"/>
+    <polygon points="168,140 154,164.2 126,164.2 112,140 126,115.8 154,115.8" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.30"/>
+  </svg>
+
+  <!-- Page number -->
+  <div class="page-num">4 / 20</div>
+</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">4 / 20</div>
+</section>
+
+<section id="slide-5" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">SECTION</div>
+    <h1 class="page-title">数据集构造与分布谱系</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+
+<div class="header-section">
+  <div class="tag">DATASET</div>
+  <div class="header-divider"></div>
+  <h1 class="slide-title">数据集构造与分布谱系</h1>
+</div>
+
+<div class="content">
+  <div class="col-left">
+    <div>
+      <div class="sub-title">长尾数据构造方法 — 指数衰减法</div>
+      <div class="formula-block">
+        <div class="formula">$n_c = n_{\max} \cdot \rho^{\,-c/(C-1)}$</div>
+        <div class="formula-desc">其中 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>n</mi><mi>max</mi><mo>⁡</mo></msub></mrow><annotation encoding="application/x-tex">n_{\max}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">a</span><span class="mtight">x</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 为头类样本数，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi></mrow><annotation encoding="application/x-tex">\rho</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ρ</span></span></span></span> 为不平衡比率（头尾比），C 为类别总数</div>
+      </div>
+      <div class="desc-text">当 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\rho=1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ρ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> 时数据均衡；<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">\rho=100</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ρ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">100</span></span></span></span> 时尾类样本数仅为头类的 1%</div>
+    </div>
+    <div>
+      <div class="sub-title">分布谱系设计 — <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>∈</mo><mo stretchy="false">{</mo><mn>1</mn><mo separator="true">,</mo><mn>5</mn><mo separator="true">,</mo><mn>10</mn><mo separator="true">,</mo><mn>20</mn><mo separator="true">,</mo><mn>50</mn><mo separator="true">,</mo><mn>100</mn><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">\rho \in \{1, 5, 10, 20, 50, 100\}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ρ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">5</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">10</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">20</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">50</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">100</span><span class="mclose">}</span></span></span></span></div>
+      <div class="desc-text">覆盖从均衡到极端长尾的完整谱系，系统考察策略在不同不平衡程度下的表现</div>
+    </div>
+  </div>
+
+  <div class="col-right">
+    <div class="table-container">
+      <div class="table-label">CIFAR-10 各类别样本数</div>
+      <div class="table-header">
+        <span>&rho;</span>
+        <span>头类(类0)</span>
+        <span>中间类(类5)</span>
+        <span>尾类(类9)</span>
+        <span>总计</span>
+      </div>
+      <div class="table-row"><span>1</span><span>5000</span><span>5000</span><span>5000</span><span>50000</span></div>
+      <div class="table-row"><span>5</span><span>5000</span><span>2317</span><span>1000</span><span>29940</span></div>
+      <div class="table-row"><span>10</span><span>5000</span><span>1264</span><span>500</span><span>15250</span></div>
+      <div class="table-row"><span>20</span><span>5000</span><span>635</span><span>250</span><span>8575</span></div>
+      <div class="table-row"><span>50</span><span>5000</span><span>225</span><span>100</span><span>4472</span></div>
+      <div class="table-row"><span>100</span><span>5000</span><span>113</span><span>50</span><span>3175</span></div>
+      <div class="table-note"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">\rho=100</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ρ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">100</span></span></span></span> 时训练集总量仅 3175，但标注预算 1100 已占 34.6%，仍属低标注预算范畴</div>
+    </div>
+
+    <div class="hex-group">
+      <svg width="120" height="100" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,5 33,12.5 33,27.5 20,35 7,27.5 7,12.5" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.30"/>
+        <polygon points="55,20 75,32 75,56 55,68 35,56 35,32" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.28"/>
+        <polygon points="95,55 110,64 110,82 95,91 80,82 80,64" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.35"/>
+        <polygon points="30,60 42,67 42,81 30,88 18,81 18,67" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.25"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<div class="page-number">5 / 20</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">5 / 20</div>
+</section>
+
+<section id="slide-6" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">模型架构</div>
+    <h1 class="page-title">TML模型与DL模型简述</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+    <div class="slide-container">
+        <div class="section-label">模型架构</div>
+        <div class="separator"></div>
+        <h1 class="slide-title">TML模型与DL模型简述</h1>
+        <div class="card-grid">
+            <div class="card-item">
+                <div class="card-header">
+                    <div class="icon-circle">
+                        <svg viewBox="0 0 24 24"><polyline points="3,17 9,11 13,15 21,7"></polyline><polyline points="17,7 21,7 21,11"></polyline></svg>
+                    </div>
+                    <div class="card-title">LR 逻辑回归</div>
+                </div>
+                <div class="card-type">传统机器学习 (TML)</div>
+                <div class="card-specs">线性分类模型，输出概率分布；对图像数据的特征提取能力有限</div>
+                <div class="card-role">交叉验证AL策略在CIFAR-10上的有效性</div>
+            </div>
+            <div class="card-item">
+                <div class="card-header">
+                    <div class="icon-circle">
+                        <svg viewBox="0 0 24 24"><path d="M12 3v4M12 7L8 11M12 7l4 4M8 11v4M8 15l-3 4M8 15l3 4M16 11v4M16 15l-3 4M16 15l3 4"></path></svg>
+                    </div>
+                    <div class="card-title">RF 随机森林</div>
+                </div>
+                <div class="card-type">传统机器学习 (TML)</div>
+                <div class="card-specs">集成决策树模型，非线性决策边界；鲁棒性强，对噪声不敏感</div>
+                <div class="card-role">验证AL策略对非线性传统模型的适用性</div>
+            </div>
+            <div class="card-item">
+                <div class="card-header">
+                    <div class="icon-circle">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="4" rx="1"></rect><rect x="5" y="10" width="14" height="4" rx="1"></rect><rect x="7" y="17" width="10" height="4" rx="1"></rect></svg>
+                    </div>
+                    <div class="card-title">SimpleCNN</div>
+                </div>
+                <div class="card-type">深度学习 (DL)</div>
+                <div class="card-specs">3层卷积+全连接，~1.1M参数；Conv: 3→32→64→128，FC: 2048→256→10</div>
+                <div class="card-role">主要实验模型，承担核心AL+SSL策略验证</div>
+            </div>
+            <div class="card-item">
+                <div class="card-header">
+                    <div class="icon-circle">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="6" height="6" rx="1"></rect><rect x="9" y="2" width="6" height="6" rx="1"></rect><rect x="16" y="2" width="6" height="6" rx="1"></rect><rect x="2" y="9" width="6" height="6" rx="1"></rect><rect x="9" y="9" width="6" height="6" rx="1"></rect><rect x="16" y="9" width="6" height="6" rx="1"></rect><rect x="2" y="16" width="6" height="6" rx="1"></rect><rect x="9" y="16" width="6" height="6" rx="1"></rect><rect x="16" y="16" width="6" height="6" rx="1"></rect></svg>
+                    </div>
+                    <div class="card-title">ResNet-18</div>
+                </div>
+                <div class="card-type">深度学习 (DL)</div>
+                <div class="card-specs">残差网络，~11.2M参数；跳跃连接缓解梯度消失，深层特征提取</div>
+                <div class="card-role">在更深层网络上验证策略趋势的一致性</div>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">6 / 20</div>
+    <div class="hexagons">
+        <svg width="280" height="220" viewBox="0 0 280 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="200,170 232,152 232,116 200,98 168,116 168,152" stroke="#2563EB" stroke-width="1" opacity="0.30"/>
+            <polygon points="148,192 174,177 174,147 148,132 122,147 122,177" stroke="#2563EB" stroke-width="1" opacity="0.25"/>
+            <polygon points="228,76 248,65 248,43 228,32 208,43 208,65" stroke="#2563EB" stroke-width="1" opacity="0.28"/>
+            <polygon points="112,148 128,139 128,121 112,112 96,121 96,139" stroke="#2563EB" stroke-width="1" opacity="0.25"/>
+            <polygon points="258,138 272,130 272,114 258,106 244,114 244,130" stroke="#2563EB" stroke-width="1" opacity="0.35"/>
+        </svg>
+    </div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">6 / 20</div>
+</section>
+
+<section id="slide-7" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">BASELINE ANALYSIS</div>
+    <h1 class="page-title">标准AL策略在分布谱系上的表现</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="slide-root">
+  <!-- Top blue bar -->
+  <div class="top-bar"></div>
+
+  <!-- Header -->
+  <div class="slide-header">
+    <div class="header-label">BASELINE ANALYSIS</div>
+    <div class="header-divider"></div>
+    <h1 class="slide-title">标准AL策略在分布谱系上的表现</h1>
+  </div>
+
+  <!-- Body -->
+  <div class="slide-body">
+    <!-- Chart 55% -->
+    <div class="chart-col">
+      <div class="chart-wrap">
+        <canvas id="mainChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Findings 45% -->
+    <div class="findings-col">
+      <div class="finding-item">
+        <div class="finding-icon-row">
+          <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="#2563EB" stroke-width="1"/><path d="M6 9l2 2 4-4" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="finding-tag">ρ = 1 · 均衡</span>
+        </div>
+        <div class="finding-title">QBC 最优 (0.4514)</div>
+        <div class="finding-text">策略间差异约 <strong>5%</strong>，不确定性采样略有优势</div>
+      </div>
+
+      <div class="finding-item">
+        <div class="finding-icon-row">
+          <svg viewBox="0 0 18 18" fill="none"><path d="M3 14L9 4l6 10" stroke="#64748B" stroke-width="1" stroke-linejoin="round"/><line x1="9" y1="8" x2="9" y2="11" stroke="#64748B" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="12.5" r="0.7" fill="#64748B"/></svg>
+          <span class="finding-tag">ρ ≥ 20 · 中重度长尾</span>
+        </div>
+        <div class="finding-title">所有策略性能急剧下降</div>
+        <div class="finding-text">Macro-F1 从 <strong>~0.42</strong> 跌至 <strong>~0.25</strong>，降幅超 40%</div>
+      </div>
+
+      <div class="finding-item">
+        <div class="finding-icon-row">
+          <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="3" width="12" height="12" rx="1.5" stroke="#64748B" stroke-width="1"/><path d="M7 7l4 4M11 7l-4 4" stroke="#64748B" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span class="finding-tag">ρ = 100 · 极端长尾</span>
+        </div>
+        <div class="finding-title">CoreSet 失效 (0.2102)</div>
+        <div class="finding-text">低于 Random (<strong>0.2206</strong>)，多样性采样在长尾下反噬</div>
+      </div>
+
+      <div class="core-insight">
+        <div class="core-insight-label">本质问题</div>
+        <div class="core-insight-text">标准策略只关注"模型对哪个样本最不确定"，不关心"哪个类别最需要标注"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hexagon decorations bottom-right -->
+  <div class="hex-deco">
+    <svg width="120" height="100" viewBox="0 0 120 100">
+      <polygon points="30,5 52,18 52,44 30,57 8,44 8,18" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.30"/>
+      <polygon points="70,20 88,30 88,50 70,60 52,50 52,30" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.25"/>
+      <polygon points="18,50 36,60 36,80 18,90 0,80 0,60" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.31"/>
+      <polygon points="90,55 110,66 110,88 90,99 70,88 70,66" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.27"/>
+      <polygon points="50,65 62,72 62,86 50,93 38,86 38,72" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.35"/>
+    </svg>
+  </div>
+</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">7 / 20</div>
+</section>
+
+<section id="slide-8" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">AL STRATEGIES</div>
+    <h1 class="page-title">六种基础主动学习策略</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="slide">
+  <div class="top-bar"></div>
+
+  <div class="page-header">
+    <div class="page-label">AL STRATEGIES</div>
+    <div class="header-line"></div>
+    <h1 class="page-heading">六种基础主动学习策略</h1>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-label">① Random 随机采样</div>
+      <div class="card-title">基线策略</div>
+      <div class="card-desc">从候选池中均匀随机选择样本，作为最简单的基线策略。不考虑模型状态，提供性能下界参考。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">② Entropy 熵采样</div>
+      <div class="card-title">不确定性度量</div>
+      <div class="card-desc">选择预测熵最高的样本：H(p) = -Σ p(c|x)·log p(c|x)。偏好模型最不确定的样本，在均衡数据上效果显著。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">③ Margin 边界采样</div>
+      <div class="card-title">决策边界聚焦</div>
+      <div class="card-desc">选择预测概率最高的两个类别之间差距最小的样本：margin = p(ŷ₁|x) - p(ŷ₂|x)。关注决策边界附近的样本。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">④ BADGE 多样性采样</div>
+      <div class="card-title">不确定性-多样性平衡</div>
+      <div class="card-desc">利用梯度嵌入实现不确定性-多样性平衡。通过梯度方向和模长同时考虑样本信息量和特征空间覆盖。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">⑤ CoreSet 核心集采样</div>
+      <div class="card-title">特征空间覆盖</div>
+      <div class="card-desc">通过k-center贪婪算法最大化特征空间覆盖。选择与已标注样本距离最远的样本，确保特征空间均匀覆盖。</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">⑥ QBC 委员会查询</div>
+      <div class="card-title">模型分歧度量</div>
+      <div class="card-desc">训练5个异构CNN模型组成委员会，选择投票熵最大的样本。利用模型间的分歧衡量样本价值。</div>
+    </div>
+  </div>
+
+  <!-- Hexagon decorations bottom-right -->
+  <div class="hex" style="width:80px;height:80px;bottom:18px;right:90px;background:rgba(37,99,235,0.08);"></div>
+  <div class="hex" style="width:50px;height:50px;bottom:68px;right:55px;background:rgba(37,99,235,0.12);"></div>
+  <div class="hex" style="width:35px;height:35px;bottom:8px;right:165px;background:rgba(37,99,235,0.06);"></div>
+  <div class="hex" style="width:60px;height:60px;bottom:85px;right:140px;background:rgba(37,99,235,0.10);"></div>
+  <div class="hex" style="width:28px;height:28px;bottom:105px;right:80px;background:rgba(37,99,235,0.07);"></div>
+
+  <div class="page-num">8 / 20</div>
+</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">8 / 20</div>
+</section>
+
+<section id="slide-9" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">SSL FRAMEWORK</div>
+    <h1 class="page-title">半监督学习策略：FixMatch框架</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+
+  <div class="page-header">
+    <div class="tag-row">
+      <span class="tag-label">SSL FRAMEWORK</span>
+      <div class="header-line"></div>
+    </div>
+    <div class="page-title">半监督学习策略：FixMatch框架</div>
+  </div>
+
+  <div class="content-area">
+    <!-- Card 1: FixMatch Core -->
+    <div class="card">
+      <div class="card-tag">FixMatch</div>
+      <div class="card-title">核心机制</div>
+
+      <div class="step-row">
+        <svg class="step-badge" width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="13" fill="#2563EB"/><text x="13" y="18" text-anchor="middle" fill="#FFFFFF" font-size="18" font-weight="500" font-family="'Alibaba PuHuiTi 3.0', sans-serif">1</text></svg>
+        <div class="step-text">对未标注样本施加弱增强（RandomCrop + RandomFlip），生成预测概率 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>w</mi></msub></mrow><annotation encoding="application/x-tex">p_w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></div>
+      </div>
+      <div class="step-row">
+        <svg class="step-badge" width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="13" fill="#2563EB"/><text x="13" y="18" text-anchor="middle" fill="#FFFFFF" font-size="18" font-weight="500" font-family="'Alibaba PuHuiTi 3.0', sans-serif">2</text></svg>
+        <div class="step-text">若 max(<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>w</mi></msub></mrow><annotation encoding="application/x-tex">p_w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>) ≥ τ=0.95，生成伪标签 ŷ = argmax(<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>w</mi></msub></mrow><annotation encoding="application/x-tex">p_w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)</div>
+      </div>
+      <div class="step-row" style="border-bottom:none;">
+        <svg class="step-badge" width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="13" fill="#2563EB"/><text x="13" y="18" text-anchor="middle" fill="#FFFFFF" font-size="18" font-weight="500" font-family="'Alibaba PuHuiTi 3.0', sans-serif">3</text></svg>
+        <div class="step-text">对同一样本施加强增强（RandAugment + CutOut），计算与伪标签的一致性损失：</div>
+      </div>
+
+      <div class="formula-box"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi mathvariant="script">L</mi><mi>u</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mi mathvariant="normal">∣</mi><msub><mi>B</mi><mi>u</mi></msub><mi mathvariant="normal">∣</mi></mrow></mfrac><mo>∑</mo><mn mathvariant="double-struck">1</mn><mo stretchy="false">[</mo><mi>max</mi><mo>⁡</mo><mtext> </mtext><msub><mi>p</mi><mi>w</mi></msub><mo>≥</mo><mi>τ</mi><mo stretchy="false">]</mo><mo>⋅</mo><mi>H</mi><mo stretchy="false">(</mo><msub><mi>p</mi><mi>s</mi></msub><mo separator="true">,</mo><mtext> </mtext><msub><mover accent="true"><mi>y</mi><mo>^</mo></mover><mi>w</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}_u = \frac{1}{|B_u|} \sum \mathbb{1}[\max\, p_w \geq \tau] \cdot H(p_s,\, \hat{y}_w)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathcal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.2574em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0502em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">u</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-symbol large-op" style="position:relative;top:0em;">∑</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mopen">[</span><span class="mop">max</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">s</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1944em;"><span class="mord">^</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></div>
+
+      <div class="params-section">
+        <div class="params-label">关键参数</div>
+        <div class="param-item">
+          <svg class="param-dot" width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#64748B"/></svg>
+          <span class="param-text">置信度阈值 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>=</mo><mn>0.95</mn></mrow><annotation encoding="application/x-tex">\tau = 0.95</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.95</span></span></span></span>（固定）</span>
+        </div>
+        <div class="param-item">
+          <svg class="param-dot" width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#64748B"/></svg>
+          <span class="param-text">弱增强：RandomCrop + RandomHorizontalFlip</span>
+        </div>
+        <div class="param-item">
+          <svg class="param-dot" width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#64748B"/></svg>
+          <span class="param-text">强增强：RandAugment(N=2, M=10) + CutOut(size=16)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hexagon decorations -->
+  <svg class="hex-group" width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="35,8 52,18 52,38 35,48 18,38 18,18" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.30"/>
+    <polygon points="90,30 115,44 115,72 90,86 65,72 65,44" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.28"/>
+    <polygon points="150,65 170,76 170,98 150,109 130,98 130,76" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.33"/>
+    <polygon points="55,90 72,100 72,118 55,128 38,118 38,100" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.25"/>
+    <polygon points="165,12 180,21 180,39 165,48 150,39 150,21" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.35"/>
+  </svg>
+
+  <div class="page-number">9 / 20</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">9 / 20</div>
+</section>
+
+<section id="slide-10" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">FLEXMATCH 框架</div>
+    <h1 class="page-title">FlexMatch框架详述</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+
+<div class="slide-root">
+    <div class="section-label">FLEXMATCH 框架</div>
+    <div class="separator"></div>
+    <h1 class="slide-title">FlexMatch框架详述</h1>
+
+    <!-- Row 1: 3 pipeline step cards -->
+    <div class="pipeline-row">
+        <!-- Step 1: Weak augmentation -->
+        <div class="pipeline-card">
+            <div class="card-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M3 9h18M9 3v18"/>
+                </svg>
+            </div>
+            <div class="card-step-label">Step 1</div>
+            <div class="card-title">弱增强与伪标签生成</div>
+            <div class="card-desc">对未标注样本施加弱增强（RandomCrop + RandomFlip），模型预测生成伪标签作为监督信号。与FixMatch一致。</div>
+        </div>
+
+        <!-- Step 2: Class-adaptive threshold -->
+        <div class="pipeline-card">
+            <div class="card-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+            </div>
+            <div class="card-step-label">Step 2</div>
+            <div class="card-title">类别自适应置信度阈值</div>
+            <div class="card-desc">不同于FixMatch固定<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo lspace="0em" rspace="0em">=</mo><mn>0.95</mn></mrow><annotation encoding="application/x-tex">\tau{=}0.95</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mord"><span class="mrel">=</span></span><span class="mord">0.95</span></span></span></span>，FlexMatch为每个类别c学习独立阈值<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\tau_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>：学得好的类别阈值降低，学习不足的类别阈值保持高位，训练过程中动态调整。</div>
+        </div>
+
+        <!-- Step 3: Strong augmentation + consistency -->
+        <div class="pipeline-card">
+            <div class="card-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+                </svg>
+            </div>
+            <div class="card-step-label">Step 3</div>
+            <div class="card-title">强增强与一致性正则化</div>
+            <div class="card-desc">对同一样本施加强增强（RandAugment + CutOut），以类别自适应阈值为判据，计算弱增强伪标签与强增强预测的一致性交叉熵损失。</div>
+        </div>
+    </div>
+
+    <!-- Row 2: Flow diagram + Limitation -->
+    <div class="bottom-row">
+        <!-- SVG Flow Diagram + Loss Formula -->
+        <div class="flow-panel">
+            <div class="flow-label">核心流程</div>
+            <svg width="100%" height="80" viewBox="0 0 680 80" preserveAspectRatio="xMidYMid meet">
+                <!-- Nodes -->
+                <rect x="0" y="20" width="88" height="36" rx="6" fill="rgba(37,99,235,0.08)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="44" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#0F172A">弱增强</text>
+
+                <line x1="92" y1="38" x2="118" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <rect x="122" y="20" width="88" height="36" rx="6" fill="rgba(37,99,235,0.08)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="166" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#0F172A">模型预测</text>
+
+                <line x1="214" y1="38" x2="240" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <rect x="244" y="20" width="88" height="36" rx="6" fill="rgba(37,99,235,0.08)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="288" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#0F172A">伪标签</text>
+
+                <line x1="336" y1="38" x2="362" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <!-- Threshold diamond with class-adaptive τ_c -->
+                <polygon points="398,20 428,38 398,56 368,38" fill="rgba(37,99,235,0.06)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="398" y="42" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#2563EB">τ_c</text>
+
+                <line x1="430" y1="38" x2="456" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <rect x="460" y="20" width="88" height="36" rx="6" fill="rgba(37,99,235,0.08)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="504" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#0F172A">强增强</text>
+
+                <line x1="552" y1="38" x2="578" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <rect x="582" y="20" width="94" height="36" rx="6" fill="#2563EB" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="629" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">一致性损失</text>
+
+                <!-- Arrow marker definition -->
+                <defs>
+                    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#2563EB"/>
+                    </marker>
+                </defs>
+            </svg>
+            <div class="loss-formula"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>L</mi><mo>=</mo><msub><mi>L</mi><mtext>supervised</mtext></msub><mo>+</mo><mi>λ</mi><mo>⋅</mo><msub><mi>L</mi><mtext>unsupervised</mtext></msub><mo stretchy="false">(</mo><msub><mi>τ</mi><mi>c</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">L = L_{\text{supervised}} + \lambda \cdot L_{\text{unsupervised}}(\tau_c)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">supervised</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">unsupervised</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></div>
+        </div>
+
+        <!-- Limitation card -->
+        <div class="limitation-card">
+            <div class="limitation-header">
+                <svg class="limitation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div class="limitation-title">长尾分布下的局限性</div>
+            </div>
+            <div class="limitation-point">
+                <div class="limitation-dot"></div>
+                <div class="limitation-text">自适应阈值<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\tau_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>相比FixMatch固定阈值部分缓解了类别不平衡问题</div>
+            </div>
+            <div class="limitation-point">
+                <div class="limitation-dot"></div>
+                <div class="limitation-text">但仍未显式建模长尾分布结构，无法区分头类与尾类的学习差异</div>
+            </div>
+            <div class="limitation-point">
+                <div class="limitation-dot"></div>
+                <div class="limitation-text">极端不平衡下<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\tau_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>动态调节幅度有限，尾类伪标签质量仍不足</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wireframe hexagons bottom-right -->
+<svg class="hexagons" width="200" height="160" viewBox="0 0 200 160">
+    <polygon points="140,10 170,27 170,61 140,78 110,61 110,27" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.3"/>
+    <polygon points="170,50 195,64 195,92 170,106 145,92 145,64" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.25"/>
+    <polygon points="120,65 145,79 145,107 120,121 95,107 95,79" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.35"/>
+    <polygon points="155,100 175,112 175,136 155,148 135,136 135,112" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.28"/>
+    <polygon points="100,110 118,120 118,140 100,150 82,140 82,120" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.32"/>
+</svg>
+
+<div class="page-number">10 / 20</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">10 / 20</div>
+</section>
+
+<section id="slide-11" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">BASELINE RESULTS</div>
+    <h1 class="page-title">基础实验结果：纯AL策略对比</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+
+<div class="slide-root">
+  <div class="page-header">
+    <div class="header-label">BASELINE RESULTS</div>
+    <div class="header-divider"></div>
+    <h1 class="header-title">基础实验结果：纯AL策略对比</h1>
+  </div>
+
+  <div class="main-content">
+    <div class="left-panel">
+      <div class="chart-wrapper">
+        <canvas id="mainChart"></canvas>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="data-table">
+        <div class="table-header">
+          <div class="table-cell">策略</div>
+          <div class="table-cell">ρ=1</div>
+          <div class="table-cell">ρ=10</div>
+          <div class="table-cell">ρ=50</div>
+          <div class="table-cell">ρ=100</div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">QBC</div>
+          <div class="table-cell">0.451</div>
+          <div class="table-cell">0.377</div>
+          <div class="table-cell">0.255</div>
+          <div class="table-cell">0.229</div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">Margin</div>
+          <div class="table-cell">0.449</div>
+          <div class="table-cell">0.345</div>
+          <div class="table-cell">0.268</div>
+          <div class="table-cell">0.261</div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">Random</div>
+          <div class="table-cell">0.443</div>
+          <div class="table-cell">0.356</div>
+          <div class="table-cell">0.248</div>
+          <div class="table-cell">0.221</div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">Entropy</div>
+          <div class="table-cell">0.425</div>
+          <div class="table-cell">0.344</div>
+          <div class="table-cell">0.259</div>
+          <div class="table-cell">0.258</div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">Badge</div>
+          <div class="table-cell">0.420</div>
+          <div class="table-cell">0.336</div>
+          <div class="table-cell">0.254</div>
+          <div class="table-cell">0.221</div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">CoreSet</div>
+          <div class="table-cell">0.401</div>
+          <div class="table-cell">0.330</div>
+          <div class="table-cell">0.251</div>
+          <div class="table-cell">0.210</div>
+        </div>
+      </div>
+
+      <div class="findings-section">
+        <div class="findings-title">关键发现</div>
+        <div class="finding-item">
+          <div class="finding-dot"></div>
+          <div>ρ=1(均衡)：QBC最优(0.451)，策略间差异约5%</div>
+        </div>
+        <div class="finding-item">
+          <div class="finding-dot"></div>
+          <div>ρ=10-20：策略开始分化，Margin和QBC优于Random约3-4%</div>
+        </div>
+        <div class="finding-item">
+          <div class="finding-dot"></div>
+          <div>ρ=50+：所有策略性能急剧下降，F1降至0.21-0.32</div>
+        </div>
+        <div class="finding-item">
+          <div class="finding-dot"></div>
+          <div>ρ=100(极端长尾)：CoreSet失效(0.210)&lt;Random(0.221)</div>
+        </div>
+        <div class="finding-item">
+          <div class="finding-dot"></div>
+          <div>本质：标准策略只关注不确定性，不关心类别需求</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hex-decoration">
+  <svg width="180" height="160" viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="130,20 156,35 156,65 130,80 104,65 104,35" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.30"/>
+    <polygon points="90,70 110,82 110,106 90,118 70,106 70,82" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.25"/>
+    <polygon points="150,90 172,103 172,129 150,142 128,129 128,103" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.35"/>
+    <polygon points="55,110 68,118 68,132 55,140 42,132 42,118" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.28"/>
+  </svg>
+</div>
+
+<div class="page-number">11 / 20</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">11 / 20</div>
+</section>
+
+<section id="slide-12" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">SECTION</div>
+    <h1 class="page-title">尾类感知AL策略设计</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+<div class="slide">
+
+    <!-- Header -->
+    <div class="method-label">Methodology</div>
+    <div class="header-line"></div>
+    <h1 class="slide-title">尾类感知AL策略设计</h1>
+
+    <!-- Cards -->
+    <div class="card-grid">
+        <!-- Card 1: Class-Aware Entropy -->
+        <div class="card">
+            <div class="card-title-cn">类别感知熵</div>
+            <div class="card-title-en">Class-Aware Entropy</div>
+            <div class="formula-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>score</mtext><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>H</mi><mtext>norm</mtext></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>+</mo><msub><mi>λ</mi><mtext>eff</mtext></msub><mo>⋅</mo><msub><mi>P</mi><mtext>norm</mtext></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\text{score}(x) = H_{\text{norm}}(x) + \lambda_{\text{eff}} \cdot P_{\text{norm}}(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">score</span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">norm</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">eff</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">norm</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span></span></div>
+            <div class="points-list">
+                <div class="point-row">
+                    <div class="point-dot">
+                        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#2563EB"/></svg>
+                    </div>
+                    <div class="point-text">
+                        <span class="point-label">自适应&lambda;：</span><span class="point-formula"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mtext>eff</mtext></msub><mo>=</mo><mi>λ</mi><mo>⋅</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>min</mi><mo>⁡</mo><msub><mi>n</mi><mi>c</mi></msub><mi mathvariant="normal">/</mi><mi>max</mi><mo>⁡</mo><msub><mi>n</mi><mi>c</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\lambda_{\text{eff}} = \lambda \cdot (1 - \min n_c / \max n_c)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">eff</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">min</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">max</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span>，均衡时<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mtext>eff</mtext></msub><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lambda_{\text{eff}} \to 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">eff</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>，退化为纯 Entropy
+                    </div>
+                </div>
+                <div class="point-row">
+                    <div class="point-dot">
+                        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#2563EB"/></svg>
+                    </div>
+                    <div class="point-text">
+                        <span class="point-label">软加权惩罚：</span><span class="point-formula"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo>∑</mo><mi>c</mi></msub><mi>p</mi><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>c</mi><mo stretchy="false">)</mo><mo>⋅</mo><msub><mi>P</mi><mtext>norm</mtext></msub><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P(x) = \sum_c p(x,c) \cdot P_{\text{norm}}(c)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.0017em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">c</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">norm</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mclose">)</span></span></span></span></span>，概率加权替代硬argmax
+                    </div>
+                </div>
+                <div class="point-row">
+                    <div class="point-dot">
+                        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#2563EB"/></svg>
+                    </div>
+                    <div class="point-text">
+                        <span class="point-label">类别惩罚：</span><span class="point-formula"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>n</mi><mi>c</mi></msub><mo>+</mo><mn>2</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P(c) = 1/\log(n_c+2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1/</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mclose">)</span></span></span></span></span>，尾类nc小&rarr;惩罚大&rarr;优先选中
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Gap-Aware Entropy -->
+        <div class="card">
+            <div class="card-title-cn">差距感知熵</div>
+            <div class="card-title-en">Gap-Aware Entropy</div>
+            <div class="formula-block"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>score</mtext><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mi>H</mi><mtext>norm</mtext></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>+</mo><mi>λ</mi><mo>⋅</mo><msub><mi>G</mi><mtext>norm</mtext></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\text{score}(x) = H_{\text{norm}}(x) + \lambda \cdot G_{\text{norm}}(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">score</span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">norm</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">norm</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span></span></div>
+            <div class="points-list">
+                <div class="point-row">
+                    <div class="point-dot">
+                        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#2563EB"/></svg>
+                    </div>
+                    <div class="point-text">
+                        <span class="point-label">分布差距：</span><span class="point-formula"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext>deficit</mtext><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo><mo>=</mo><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>1</mn><mi mathvariant="normal">/</mi><mi>C</mi><mo>−</mo><msub><mi>f</mi><mi>c</mi></msub><mo separator="true">,</mo><mtext> </mtext><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\text{deficit}(c) = \max(1/C - f_c,\, 0)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">deficit</span></span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">max</span><span class="mopen">(</span><span class="mord">1/</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose">)</span></span></span></span></span>，衡量各类别与均衡的差距
+                    </div>
+                </div>
+                <div class="point-row">
+                    <div class="point-dot">
+                        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#2563EB"/></svg>
+                    </div>
+                    <div class="point-text">
+                        <span class="point-label">概率加权：</span><span class="point-formula"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msub><mo>∑</mo><mi>c</mi></msub><mi>p</mi><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>c</mi><mo stretchy="false">)</mo><mo>⋅</mo><mtext>deficit</mtext><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">G(x) = \sum_c p(x,c) \cdot \text{deficit}(c)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">G</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.0017em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">c</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">deficit</span></span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mclose">)</span></span></span></span></span>，不依赖预测类别
+                    </div>
+                </div>
+                <div class="point-row">
+                    <div class="point-dot">
+                        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#2563EB"/></svg>
+                    </div>
+                    <div class="point-text">
+                        <span class="point-label">自适应退化：</span><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo lspace="0em" rspace="0em">=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\rho{=}1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">ρ</span><span class="mord"><span class="mrel">=</span></span><span class="mord">1</span></span></span></span>时<span class="point-formula"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext>deficit</mtext><mo>≈</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\text{deficit}\approx 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord text"><span class="mord">deficit</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span></span>，自动退化为纯 Entropy
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hexagon decorations (bottom-right, stroke only) -->
+    <div class="hex-group">
+        <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Hex 1: side ~35px, center (50, 80) -->
+            <polygon points="50,45 80.3,62.5 80.3,97.5 50,115 19.7,97.5 19.7,62.5" stroke="#2563EB" stroke-width="1" opacity="0.29"/>
+            <!-- Hex 2: side ~25px, center (110, 55) -->
+            <polygon points="110,30 131.7,42.5 131.7,67.5 110,80 88.3,67.5 88.3,42.5" stroke="#2563EB" stroke-width="1" opacity="0.25"/>
+            <!-- Hex 3: side ~40px, center (145, 115), partially clipped -->
+            <polygon points="145,75 179.6,95 179.6,135 145,155 110.4,135 110.4,95" stroke="#2563EB" stroke-width="1" opacity="0.31"/>
+            <!-- Hex 4: side ~15px, center (85, 135) -->
+            <polygon points="85,120 98,127.5 98,142.5 85,150 72,142.5 72,127.5" stroke="#2563EB" stroke-width="1" opacity="0.27"/>
+            <!-- Hex 5: side ~20px, center (175, 45), partially off-canvas -->
+            <polygon points="175,25 192.3,35 192.3,55 175,65 157.7,55 157.7,35" stroke="#2563EB" stroke-width="1" opacity="0.35"/>
+        </svg>
+    </div>
+
+    <!-- Page number -->
+    <div class="page-num">12 / 20</div>
+</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">12 / 20</div>
+</section>
+
+<section id="slide-13" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">JOINT STRATEGY</div>
+    <h1 class="page-title">AL+SSL联合尾类感知策略</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="slide">
+  <!-- Top accent bar -->
+  <div class="top-bar"></div>
+
+  <!-- Corner accent diamond -->
+  <div class="corner-accent"></div>
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="header-label">JOINT STRATEGY</div>
+    <div class="header-line"></div>
+    <h1 class="slide-title">AL+SSL联合尾类感知策略</h1>
+  </div>
+
+  <!-- Main content area -->
+  <div class="content-area">
+    <div class="main-card">
+      <div class="card-label"><span class="card-num">01</span>联合分布感知采样</div>
+
+      <div class="card-body">
+        <!-- Left column: formulas -->
+        <div class="formula-col">
+          <div class="formula-group">
+            <div class="formula-title">类别惩罚因子</div>
+            <div class="formula-block">
+              <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mn>1</mn><mrow><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><msubsup><mi>n</mi><mi>c</mi><mtext>lab</mtext></msubsup><mo>+</mo><msubsup><mi>n</mi><mi>c</mi><mtext>pseudo</mtext></msubsup><mo>+</mo><mn>2</mn><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">P(c) = \frac{1}{\log(n_c^{\text{lab}} + n_c^{\text{pseudo}} + 2)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4285em;vertical-align:-1.107em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.143em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.7751em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">lab</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.967em;"><span style="top:-2.5834em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span><span style="top:-3.1809em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">pseudo</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1166em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">2</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.107em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+            </div>
+            <div class="formula-explain">联合统计已标注与伪标签数量，对头类施加更高惩罚以抑制过采样</div>
+          </div>
+
+          <div class="formula-group">
+            <div class="formula-title">类别亏缺度量</div>
+            <div class="formula-block">
+              <span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mtext>deficit</mtext><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo><mo>=</mo><mi>max</mi><mo>⁡</mo><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><mn>1</mn><mi>C</mi></mfrac><mo>−</mo><msubsup><mi>f</mi><mi>c</mi><mtext>joint</mtext></msubsup><mo separator="true">,</mo><mtext>  </mtext><mn>0</mn><mo fence="true">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{deficit}(c) = \max\!\left(\frac{1}{C} - f_c^{\text{joint}},\; 0\right)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">deficit</span></span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mop">max</span><span class="mspace" style="margin-right:-0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1076em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8805em;"><span style="top:-2.453em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">joint</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span></span></span>
+            </div>
+            <div class="formula-explain">度量各类相对均匀分布的偏离程度，亏缺越大则采样优先级越高</div>
+          </div>
+
+          <div class="core-idea">
+            <div class="core-idea-label">核心思想</div>
+            <div class="core-idea-text">利用AL与SSL的联合类别分布估计，消除信息孤岛，使主动学习采样与伪标签生成共享尾类感知信号</div>
+          </div>
+        </div>
+
+        <!-- Right column: flow cycle -->
+        <div class="flow-col">
+          <div class="flow-heading">正反馈循环机制</div>
+
+          <div class="flow-cycle">
+            <div class="flow-step">
+              <div class="flow-step-icon">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h12M12 6l3 3-3 3"/></svg>
+              </div>
+              <div class="flow-step-body">
+                <div class="flow-step-title">SSL填充头类gap</div>
+                <div class="flow-step-desc">伪标签补充头类大量无标注数据，缩小头类标注亏缺</div>
+              </div>
+            </div>
+
+            <div class="flow-connector">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v12M6 12l3 3 3-3"/></svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="flow-step-icon">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h12M12 6l3 3-3 3"/></svg>
+              </div>
+              <div class="flow-step-body">
+                <div class="flow-step-title">AL预算转向尾类</div>
+                <div class="flow-step-desc">头类亏缺降低后，主动学习预算自然向尾类倾斜</div>
+              </div>
+            </div>
+
+            <div class="flow-connector">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v12M6 12l3 3 3-3"/></svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="flow-step-icon">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h12M12 6l3 3-3 3"/></svg>
+              </div>
+              <div class="flow-step-body">
+                <div class="flow-step-title">模型尾类性能提升</div>
+                <div class="flow-step-desc">更多尾类标注样本改善模型对尾部类别的判别能力</div>
+              </div>
+            </div>
+
+            <div class="flow-connector">
+              <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v12M6 12l3 3 3-3"/></svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="flow-step-icon">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h12M12 6l3 3-3 3"/></svg>
+              </div>
+              <div class="flow-step-body">
+                <div class="flow-step-title">SSL生成更准确伪标签</div>
+                <div class="flow-step-desc">模型改进后伪标签质量提升，进一步加速联合训练收敛</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-return">
+            <div class="flow-return-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10a6 6 0 1 1 1.76 4.24"/><path d="M4 14V10h4"/></svg>
+            </div>
+            <div class="flow-return-text">循环持续迭代直至收敛</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hexagon decorations bottom-right (constrained within viewport) -->
+  <svg class="hex-deco" style="right: 40px; bottom: 50px; width: 80px; height: 70px;" viewBox="0 0 80 70">
+    <polygon points="40,0 75,17.5 75,52.5 40,70 5,52.5 5,17.5" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.12"/>
+  </svg>
+  <svg class="hex-deco" style="right: 100px; bottom: 20px; width: 50px; height: 44px;" viewBox="0 0 50 44">
+    <polygon points="25,0 47.5,11 47.5,33 25,44 2.5,33 2.5,11" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.10"/>
+  </svg>
+  <svg class="hex-deco" style="right: 0px; bottom: 80px; width: 60px; height: 52px;" viewBox="0 0 60 52">
+    <polygon points="30,0 57,13 57,39 30,52 3,39 3,13" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.15"/>
+  </svg>
+  <svg class="hex-deco" style="right: 160px; bottom: 60px; width: 35px; height: 30px;" viewBox="0 0 35 30">
+    <polygon points="17.5,0 33.5,7.5 33.5,22.5 17.5,30 1.5,22.5 1.5,7.5" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.11"/>
+  </svg>
+  <svg class="hex-deco" style="right: 70px; bottom: 0px; width: 45px; height: 40px;" viewBox="0 0 45 40">
+    <polygon points="22.5,0 43,10 43,30 22.5,40 2,30 2,10" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.13"/>
+  </svg>
+</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">13 / 20</div>
+</section>
+
+<section id="slide-14" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">MAIN RESULTS</div>
+    <h1 class="page-title">主要实验结果</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="slide">
+    <div class="top-bar"></div>
+
+    <div class="page-header">
+      <div class="header-label">MAIN RESULTS</div>
+      <div class="header-line"></div>
+      <h1 class="header-title">主要实验结果</h1>
+    </div>
+
+    <div class="content">
+      <!-- Left: Data Table -->
+      <div class="left-col">
+        <div class="table-subtitle">CIFAR-10 | Macro-F1 (5 seeds mean&plusmn;std)</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>策略</th>
+              <th>&rho;=1</th>
+              <th>&rho;=10</th>
+              <th>&rho;=50</th>
+              <th>&rho;=100</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Class-Aware</td>
+              <td>0.3826&plusmn;.027</td>
+              <td class="best">0.3729&plusmn;.018</td>
+              <td class="best">0.3129&plusmn;.011</td>
+              <td class="best">0.2767&plusmn;.017</td>
+            </tr>
+            <tr>
+              <td>Gap-Aware</td>
+              <td class="best">0.4129&plusmn;.025</td>
+              <td>0.3618&plusmn;.011</td>
+              <td>0.2969&plusmn;.022</td>
+              <td>0.2708&plusmn;.005</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="baseline-ref">
+          <div class="baseline-text">基线 (纯AL): Random 0.4427/0.3559/0.2475/0.2206 &middot; Entropy 0.4247/0.3438/0.2585/0.2579</div>
+        </div>
+      </div>
+
+      <!-- Right: Significance + Findings -->
+      <div class="right-col">
+        <!-- Significance Callout -->
+        <div class="sig-callout">
+          <div class="sig-callout-label">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L14.9 5.5V11.5L8 15L1.1 11.5V5.5L8 1Z" stroke="#2563EB" stroke-width="1.2"/><path d="M5.5 8L7.2 9.7L10.5 6.3" stroke="#2563EB" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            显著性检验
+          </div>
+
+          <div class="hero-context"><strong>Class-Aware vs Entropy</strong> &middot; 5-seed paired t-test &middot; &rho;=50</div>
+
+          <div class="hero-row">
+            <div class="hero-stat">
+              <div class="hero-number">p = 0.0003<span class="hero-stars">***</span></div>
+              <div class="hero-desc">极高显著性</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-number">d = 5.34</div>
+              <div class="hero-desc">Cohen's d &middot; 极大效应量</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-number">t = 11.94</div>
+              <div class="hero-desc">检验统计量</div>
+            </div>
+          </div>
+
+          <div class="sig-message">这不是偶然，是经过严格统计验证的显著改进</div>
+        </div>
+
+        <!-- Supporting stats -->
+        <div class="supporting-row">
+          <div class="supporting-card">
+            <div class="supporting-title">&rho;=10</div>
+            <div class="supporting-stat">p = 0.053</div>
+            <div class="supporting-note">d = 1.22 &middot; 接近显著</div>
+          </div>
+          <div class="supporting-card">
+            <div class="supporting-title">&rho;=100</div>
+            <div class="supporting-stat">p = 0.147</div>
+            <div class="supporting-note">d = 0.80 &middot; 效应量大</div>
+          </div>
+          <div class="supporting-card">
+            <div class="supporting-title">Gap-Aware &rho;=50</div>
+            <div class="supporting-stat">p = 0.005**</div>
+            <div class="supporting-note">d = 2.51 &middot; large</div>
+          </div>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- Key findings -->
+        <div class="findings-section">
+          <div class="findings-heading">关键发现</div>
+          <div class="finding-row">
+            <span class="finding-rho">&rho;=50</span>
+            <span class="finding-text">增益最大 <span class="finding-gain">+21.0%</span><span class="finding-note">(Class-Aware 0.3129 vs Entropy 0.2585)</span></span>
+          </div>
+          <div class="finding-row">
+            <span class="finding-rho"></span>
+            <span class="finding-text">策略自适应：不平衡越严重，增益越大</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hexagon decorations -->
+    <div class="hex-decoration hex-1"><svg viewBox="0 0 40 40" fill="none"><polygon points="20,2 37,11 37,29 20,38 3,29 3,11" stroke="#2563EB" stroke-width="1" opacity="0.12"/></svg></div>
+    <div class="hex-decoration hex-2"><svg viewBox="0 0 25 25" fill="none"><polygon points="12.5,1.5 23,7.5 23,17.5 12.5,23.5 2,17.5 2,7.5" stroke="#2563EB" stroke-width="1" opacity="0.10"/></svg></div>
+    <div class="hex-decoration hex-3"><svg viewBox="0 0 30 30" fill="none"><polygon points="15,1.5 27.5,8.5 27.5,21.5 15,28.5 2.5,21.5 2.5,8.5" stroke="#2563EB" stroke-width="1" opacity="0.15"/></svg></div>
+    <div class="hex-decoration hex-4"><svg viewBox="0 0 20 20" fill="none"><polygon points="10,1 18.5,5.5 18.5,14.5 10,19 1.5,14.5 1.5,5.5" stroke="#2563EB" stroke-width="1" opacity="0.10"/></svg></div>
+    <div class="hex-decoration hex-5"><svg viewBox="0 0 35 35" fill="none"><polygon points="17.5,2 32.5,9.5 32.5,25.5 17.5,33 2.5,25.5 2.5,9.5" stroke="#2563EB" stroke-width="1" opacity="0.12"/></svg></div>
+
+    <div class="page-number">14 / 20</div>
+  </div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">14 / 20</div>
+</section>
+
+<section id="slide-15" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">SECTION</div>
+    <h1 class="page-title">Per-Class 逐类分析：Head vs Tail</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+<div class="slide-root">
+
+    <h1 class="slide-title">Per-Class 逐类分析：Head vs Tail</h1>
+    <div class="slide-subtitle">CIFAR-10 Long-Tail 分布 · Head类(0-4) vs Tail类(5-9) F1对比</div>
+    <div class="separator"></div>
+
+    <!-- Hero stat: SSL amplification -->
+    <div class="hero-section">
+        <div class="hero-number">+58.5%</div>
+        <div class="hero-info">
+            <div class="hero-info-title">Gap-Aware SSL (渐进r3) · ρ=10 Head类F1提升</div>
+            <div class="hero-info-desc">Entropy Head 0.236 → SSL Head 0.374 · Macro F1 达 0.4373</div>
+        </div>
+    </div>
+
+    <!-- Three comparison cards -->
+    <div class="cards-row">
+
+        <!-- ρ=10 -->
+        <div class="card">
+            <div class="card-header">ρ = 10</div>
+            <div class="card-subheader">seed=42 · pure AL</div>
+            <div class="table-header">
+                <div class="col-name is-label">策略</div>
+                <div class="col-data is-label">Macro</div>
+                <div class="col-data is-label">Head</div>
+                <div class="col-data is-label">Tail</div>
+            </div>
+            <div class="table-row">
+                <div class="col-name">Entropy</div>
+                <div class="col-data">0.3344</div>
+                <div class="col-data">0.236</div>
+                <div class="col-data">0.433</div>
+            </div>
+            <div class="table-row highlight-row">
+                <div class="col-name is-bold">Class-Aware</div>
+                <div class="col-data is-bold">0.3940</div>
+                <div class="col-data is-bold">0.303</div>
+                <div class="col-data is-bold">0.485</div>
+            </div>
+            <div class="card-footer">
+                <div class="bar-track"><div class="bar-fill pos" style="width:48.5%"></div></div>
+                <div class="improvement-row">
+                    <div class="improvement-text">Head提升</div>
+                    <div class="improvement-badge pos">+28.4%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ρ=50 -->
+        <div class="card">
+            <div class="card-header">ρ = 50</div>
+            <div class="card-subheader">seed=42 · pure AL</div>
+            <div class="table-header">
+                <div class="col-name is-label">策略</div>
+                <div class="col-data is-label">Macro</div>
+                <div class="col-data is-label">Head</div>
+                <div class="col-data is-label">Tail</div>
+            </div>
+            <div class="table-row">
+                <div class="col-name">Entropy</div>
+                <div class="col-data">0.2528</div>
+                <div class="col-data">0.191</div>
+                <div class="col-data">0.315</div>
+            </div>
+            <div class="table-row highlight-row">
+                <div class="col-name is-bold">Class-Aware</div>
+                <div class="col-data is-bold">0.3134</div>
+                <div class="col-data is-bold">0.238</div>
+                <div class="col-data is-bold">0.389</div>
+            </div>
+            <div class="card-footer">
+                <div class="bar-track"><div class="bar-fill pos" style="width:42.1%"></div></div>
+                <div class="improvement-row">
+                    <div class="improvement-text">Head提升</div>
+                    <div class="improvement-badge pos">+24.6%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ρ=100 -->
+        <div class="card">
+            <div class="card-header">ρ = 100</div>
+            <div class="card-subheader">seed=42 · pure AL</div>
+            <div class="table-header">
+                <div class="col-name is-label">策略</div>
+                <div class="col-data is-label">Macro</div>
+                <div class="col-data is-label">Head</div>
+                <div class="col-data is-label">Tail</div>
+            </div>
+            <div class="table-row">
+                <div class="col-name">Entropy</div>
+                <div class="col-data">0.2760</div>
+                <div class="col-data">0.241</div>
+                <div class="col-data">0.311</div>
+            </div>
+            <div class="table-row highlight-row">
+                <div class="col-name is-bold">Class-Aware</div>
+                <div class="col-data is-bold">0.2635</div>
+                <div class="col-data is-bold">0.220</div>
+                <div class="col-data is-bold">0.307</div>
+            </div>
+            <div class="card-footer">
+                <div class="bar-track"><div class="bar-fill neg" style="width:14.9%"></div></div>
+                <div class="improvement-row">
+                    <div class="improvement-text">Head提升</div>
+                    <div class="improvement-badge neg">-8.7%</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Key takeaway -->
+    <div class="takeaway">
+        <div class="takeaway-text">策略不仅总分高，更关键的是真实拯救了Head类 — ρ=10时Head类F1提升+28.4%，引入SSL后放大至+58.5%</div>
+    </div>
+
+</div>
+
+<!-- Decorative wireframe hexagons (bottom-right, per styleGuide) -->
+<svg class="hex-deco" style="bottom:0px;right:32px;width:80px;height:92px;" viewBox="0 0 80 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="40,2 78,24 78,68 40,90 2,68 2,24" stroke="rgba(37,99,235,0.12)" stroke-width="1.5" fill="none"/>
+</svg>
+<svg class="hex-deco" style="bottom:70px;right:120px;width:50px;height:58px;" viewBox="0 0 50 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="25,2 48,16 48,42 25,56 2,42 2,16" stroke="rgba(37,99,235,0.10)" stroke-width="1.2" fill="none"/>
+</svg>
+<svg class="hex-deco" style="bottom:28px;right:185px;width:35px;height:40px;" viewBox="0 0 35 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="17.5,2 33,11 33,29 17.5,38 2,29 2,11" stroke="rgba(37,99,235,0.10)" stroke-width="1" fill="none"/>
+</svg>
+
+<div class="page-number">15 / 20</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">15 / 20</div>
+</section>
+
+<section id="slide-16" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">SECTION</div>
+    <h1 class="page-title">学习曲线：前三轮局部放大</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+
+<div class="slide-root">
+  <!-- Header -->
+  <div class="slide-header">
+    <h1 class="slide-title">学习曲线：前三轮局部放大</h1>
+    <span class="slide-subtitle">ρ=50 · seed=42</span>
+  </div>
+  <div class="separator"></div>
+
+  <!-- Body: two-column -->
+  <div class="slide-body">
+    <!-- Left: zoomed learning curve image -->
+    <div class="content-left">
+      <img src="file:///C%3A/Users/28414/.qoderworkcn/workspace/mqheghbjv6zuvrff/ai-slides/assets/learning_curve_rho50_zoomed.png" alt="ρ=50 前三轮局部放大学习曲线">
+    </div>
+
+    <!-- Right: data table + insight -->
+    <div class="content-right">
+      <!-- Data table -->
+      <div>
+        <div class="table-label">逐轮 F1 分数对比</div>
+        <div class="data-table">
+          <div class="t-row t-header">
+            <div class="t-cell t-label">轮次</div>
+            <div class="t-cell">Entropy</div>
+            <div class="t-cell">Class-Aware</div>
+            <div class="t-cell">Δ</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R1</div>
+            <div class="t-cell">0.098</div>
+            <div class="t-cell">0.093</div>
+            <div class="t-cell t-delta-neg">-0.005</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R2</div>
+            <div class="t-cell">0.105</div>
+            <div class="t-cell">0.079</div>
+            <div class="t-cell t-delta-neg">-0.026</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R3</div>
+            <div class="t-cell">0.116</div>
+            <div class="t-cell">0.111</div>
+            <div class="t-cell t-delta-neg">-0.005</div>
+          </div>
+          <div class="t-row t-crossover">
+            <div class="t-cell t-label">R4</div>
+            <div class="t-cell">0.135</div>
+            <div class="t-cell">0.161</div>
+            <div class="t-cell t-delta-pos">+0.026</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R5</div>
+            <div class="t-cell">0.179</div>
+            <div class="t-cell">0.192</div>
+            <div class="t-cell t-delta-pos">+0.013</div>
+          </div>
+          <div class="t-row">
+            <div class="t-cell t-label">R10</div>
+            <div class="t-cell">0.243</div>
+            <div class="t-cell">0.281</div>
+            <div class="t-cell t-delta-pos">+0.039</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;margin-top:6px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;">
+            <path d="M7 1L13 4.5V9.5L7 13L1 9.5V4.5L7 1Z" stroke="#2563EB" stroke-width="1" fill="rgba(37,99,235,0.08)"/>
+          </svg>
+          <span class="crossover-badge">R4 = 交叉点</span>
+        </div>
+      </div>
+
+      <!-- Insight card -->
+      <div class="insight-card">
+        <div class="insight-heading">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="7.5" stroke="#2563EB" stroke-width="1.2" fill="none"/>
+            <path d="M9 5v4M9 11.5v1" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          核心发现
+        </div>
+        <div class="insight-text">
+          前3轮策略差异小 → 第4轮起 <span class="highlight">Class-Aware 反超</span> → 差距持续扩大至 <span class="highlight">+16%（R10）</span>，体现尾类感知采样的<span class="highlight">延迟收益效应</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page number -->
+  <div class="page-number">16 / 20</div>
+
+  <!-- Decorative hexagons (styleGuide) -->
+  <div class="hex-deco hex-deco-1"></div>
+  <div class="hex-deco hex-deco-2"></div>
+  <div class="hex-deco hex-deco-3"></div>
+</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">16 / 20</div>
+</section>
+
+<section id="slide-17" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">ABLATION STUDY</div>
+    <h1 class="page-title">消融实验：AL创新 vs SSL创新</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+
+  <div class="slide-root">
+    <!-- Header -->
+    <div class="header-area">
+      <div class="header-label">ABLATION STUDY</div>
+      <div class="header-line"></div>
+      <h1 class="slide-title">消融实验：AL创新 vs SSL创新</h1>
+    </div>
+
+    <!-- Main Grid: left metric + right table -->
+    <div class="main-grid">
+      <!-- Left: Hero Metric -->
+      <div class="hero-col">
+        <div class="hero-number">+16.8%</div>
+        <div class="hero-label">Innov AL + Base SSL</div>
+        <div class="hero-sublabel">vs 纯AL基线(0.3438)</div>
+      </div>
+
+      <!-- Right: Ablation Table -->
+      <div class="table-col">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>配置</th>
+              <th>AL策略</th>
+              <th>SSL</th>
+              <th>F1</th>
+              <th>Δ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>基线</td>
+              <td>Entropy</td>
+              <td>无</td>
+              <td class="f1-cell">0.3438</td>
+              <td class="delta-na">—</td>
+            </tr>
+            <tr>
+              <td>AL+Base SSL</td>
+              <td>Entropy</td>
+              <td>FlexMatch</td>
+              <td class="f1-cell">0.3639</td>
+              <td class="delta-pos">+5.8%</td>
+            </tr>
+            <tr class="highlight-row">
+              <td>Innov AL+Base SSL</td>
+              <td>Class-Aware</td>
+              <td>FlexMatch</td>
+              <td class="f1-cell">0.4017</td>
+              <td class="delta-pos">+16.8%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bottom Key Findings -->
+    <div class="findings-strip">
+      <div class="finding-item">
+        <span class="finding-bullet"></span>
+        <span class="finding-text"><strong>AL创新+基础SSL组合最强(+16.8%)</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decorative hexagons bottom-right -->
+  <svg class="hex-deco" style="bottom: 50px; right: 80px; opacity: 0.29;" width="70" height="80" viewBox="0 0 70 80" fill="none">
+    <polygon points="35,2 65,20 65,58 35,76 5,58 5,20" stroke="#2563EB" stroke-width="1" fill="none"/>
+  </svg>
+  <svg class="hex-deco" style="bottom: 100px; right: 30px; opacity: 0.25;" width="50" height="58" viewBox="0 0 50 58" fill="none">
+    <polygon points="25,2 47,15 47,42 25,55 3,42 3,15" stroke="#2563EB" stroke-width="1" fill="none"/>
+  </svg>
+  <svg class="hex-deco" style="bottom: 20px; right: 160px; opacity: 0.35;" width="36" height="42" viewBox="0 0 36 42" fill="none">
+    <polygon points="18,2 33,11 33,30 18,39 3,30 3,11" stroke="#2563EB" stroke-width="1" fill="none"/>
+  </svg>
+  <svg class="hex-deco" style="bottom: 140px; right: 110px; opacity: 0.27;" width="44" height="50" viewBox="0 0 44 50" fill="none">
+    <polygon points="22,2 41,13 41,36 22,47 3,36 3,13" stroke="#2563EB" stroke-width="1" fill="none"/>
+  </svg>
+  <svg class="hex-deco" style="bottom: 5px; right: 20px; opacity: 0.31;" width="60" height="70" viewBox="0 0 60 70" fill="none">
+    <polygon points="30,2 56,18 56,50 30,66 4,50 4,18" stroke="#2563EB" stroke-width="1" fill="none"/>
+  </svg>
+
+  <!-- Page number -->
+  <div class="page-number">17 / 20</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">17 / 20</div>
+</section>
+
+<section id="slide-18" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">设计思想</div>
+    <h1 class="page-title">渐进式SSL调度策略</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="slide-root">
+    <!-- Top bar -->
+    <div class="top-bar"></div>
+
+    <!-- Page header -->
+    <div class="page-header">
+        <div class="page-tag">Progressive SSL</div>
+        <div class="header-line"></div>
+        <h1 class="page-title">渐进式SSL调度策略</h1>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Left: Chart -->
+        <div class="chart-col">
+            <div class="chart-label">Macro-F1 Score</div>
+            <div class="chart-wrap">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Right: Concepts + Findings -->
+        <div class="findings-col">
+            <div class="section-label">设计思想</div>
+
+            <!-- Card 1: Base SSL -->
+            <div class="concept-card">
+                <div class="card-title">
+                    <div class="card-accent-line" style="background:#64748B;"></div>
+                    Base SSL（基础SSL）
+                </div>
+                <div class="card-text">标准FixMatch，<strong>固定阈值 τ=0.95</strong> 筛选伪标签。<span class="pro">优点：准确率高(71.2%)</span>；<span class="con">缺点：尾类训练不足，伪标签少且偏向头类</span></div>
+            </div>
+
+            <!-- Card 2: Progressive Strategy (reframed) -->
+            <div class="concept-card">
+                <div class="card-title">
+                    <div class="card-accent-line" style="background:#0F172A;"></div>
+                    渐进式启用策略
+                </div>
+                <div class="card-text">前<strong>r轮</strong>仅使用监督学习，第r+1轮起启用Base SSL（FixMatch τ=0.95）。延迟SSL启用确保模型积累足够标注数据，<span class="pro">伪标签质量更可靠</span>。<span class="pro">ρ=50时r=3最优，ρ=100时r=5最优</span></div>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="findings-heading">关键发现</div>
+
+            <div class="finding-item">
+                <div class="finding-bullet"><svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#2563EB"/></svg></div>
+                <div class="finding-text"><strong>低ρ(≤10)：</strong>Base SSL最优，早期标注数据不足</div>
+            </div>
+
+            <div class="finding-item">
+                <div class="finding-bullet"><svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#2563EB"/></svg></div>
+                <div class="finding-text"><strong>ρ=50：</strong>Prog r3最优(0.3322)，第4轮启用SSL</div>
+            </div>
+
+            <div class="finding-item">
+                <div class="finding-bullet"><svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#2563EB"/></svg></div>
+                <div class="finding-text"><strong>ρ=100：</strong>Prog r5最优(0.2988)，需更长纯监督期</div>
+            </div>
+
+            <div class="finding-item">
+                <div class="finding-bullet"><svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#2563EB"/></svg></div>
+                <div class="finding-text"><strong>启用时机影响显著：</strong>长尾越极端，SSL延迟越有利</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hexagonal decorations -->
+<div class="hex-decorations">
+    <svg width="160" height="140" viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;right:0;bottom:0;">
+        <!-- Hex 1: center (90,55), side 25px -->
+        <polygon points="115,55 102.5,76.65 77.5,76.65 65,55 77.5,33.35 102.5,33.35" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.29"/>
+        <!-- Hex 2: center (130,25), side 15px -->
+        <polygon points="145,25 137.5,37.99 122.5,37.99 115,25 122.5,12.01 137.5,12.01" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.25"/>
+        <!-- Hex 3: center (70,105), side 35px — partial overflow bottom -->
+        <polygon points="105,105 87.5,135.31 52.5,135.31 35,105 52.5,74.69 87.5,74.69" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.31"/>
+        <!-- Hex 4: center (140,85), side 20px — partial overflow right -->
+        <polygon points="160,85 150,102.32 130,102.32 120,85 130,67.68 150,67.68" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.27"/>
+        <!-- Hex 5: center (110,65), side 40px — large -->
+        <polygon points="150,65 130,99.64 90,99.64 70,65 90,30.36 130,30.36" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.35"/>
+    </svg>
+</div>
+
+<!-- Page number -->
+<div class="page-number">18 / 20</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">18 / 20</div>
+</section>
+
+<section id="slide-19" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">SECTION</div>
+    <h1 class="page-title">失效场景与适用边界分析</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+<div class="slide">
+    <div class="page-header">
+        <div class="page-tag">FAILURE ANALYSIS</div>
+        <div class="page-divider"></div>
+        <h1 class="page-title">失效场景与适用边界分析</h1>
+    </div>
+
+    <div class="card-grid">
+        <div class="card">
+            <div class="card-title">均衡数据 ρ=1</div>
+            <div class="card-metrics">
+                <span class="metric-item">Class-Aware -9.9%</span>
+                <span class="metric-item">Gap-Aware -2.8%</span>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-desc"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>c</mi><mo stretchy="false">)</mo><mo>≈</mo></mrow><annotation encoding="application/x-tex">P(c)\approx</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord mathnormal">c</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span></span></span></span> 常数，不提供有效区分信号；SSL组件增加复杂度但无收益</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">极端长尾 ρ=100</div>
+            <div class="card-metrics">
+                <span class="metric-item">增益从+21.0%收窄至+7.3%</span>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-desc">尾类仅50样本，每轮查询仅1-2个尾类；分布估计不稳定；伪标签质量极低</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">大量类别 CIFAR-100</div>
+            <div class="card-metrics">
+                <span class="metric-item">F1普遍很低(0.05-0.10)</span>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-desc">每类仅~10样本，Penalty差异被压缩；高维softmax输出空间噪声大</div>
+        </div>
+    </div>
+
+    <div class="summary-bar">
+        <span class="summary-text"><span class="summary-label">适用条件：</span>类间分布差异足够大(ρ≥10) · 类内样本足够多(≥数十) · 类别数适中(~10类)</span>
+    </div>
+
+    <svg class="hexagon hex-1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="50,3 93,25 93,75 50,97 7,75 7,25"/>
+    </svg>
+    <svg class="hexagon hex-2" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="50,3 93,25 93,75 50,97 7,75 7,25"/>
+    </svg>
+    <svg class="hexagon hex-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="50,3 93,25 93,75 50,97 7,75 7,25"/>
+    </svg>
+    <svg class="hexagon hex-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="50,3 93,25 93,75 50,97 7,75 7,25"/>
+    </svg>
+    <svg class="hexagon hex-5" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="50,3 93,25 93,75 50,97 7,75 7,25"/>
+    </svg>
+
+    <div class="page-number">19 / 20</div>
+</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">19 / 20</div>
+</section>
+
+<section id="slide-20" class="slide-page">
+  <div class="inner-frame"></div>
+  <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; padding:0 120px;">
+    <div class="page-label" style="margin-bottom:32px;">THANK YOU</div>
+    <h1 style="font-family:var(--font-display); font-size:48px; font-weight:700; color:var(--text-primary); letter-spacing:var(--ls-display); text-align:center;">
+      总结与展望
+    </h1>
+    <div style="width:80px; height:2px; background:var(--accent-primary); margin:32px 0;"></div>
+    <p style="font-size:18px; color:var(--text-secondary); text-align:center;">
+      Q & A
+    </p>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">20 / 20</div>
+</section>
+
+    </div>
+  </div>
+
+  <div id="controls">
+    <button id="prev" aria-label="Previous">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7L9 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span id="counter">1 / 20</span>
+    <button id="next" aria-label="Next">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3L9 7L5 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button id="fs" aria-label="Fullscreen">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 5V2H5 M9 2H12V5 M12 9V12H9 M5 12H2V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div id="hint">← → Space · F fullscreen · Esc exit</div>
+
+<script>
+(function() {
+  var TOTAL = 20;
+  var idx = 0;
+  var fadeTimer = null;
+  var chartInitialized = {};
+
+  var slideChartScripts = {
+  7: function() {
+Chart.defaults.font.family = "'Alibaba PuHuiTi 3.0', sans-serif";
+Chart.defaults.font.size = 18;
+Chart.defaults.color = '#475569';
+
+var ctx = document.getElementById('mainChart').getContext('2d');
+
+var labels = ['ρ=1', 'ρ=5', 'ρ=10', 'ρ=20', 'ρ=50', 'ρ=100'];
+
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: 'QBC',
+        data: [0.4514, 0.4263, 0.3769, 0.2980, 0.2554, 0.2289],
+        borderColor: '#2563EB',
+        backgroundColor: '#2563EB',
+        borderWidth: 1.5,
+        pointRadius: 4,
+        pointStyle: 'circle',
+        tension: 0.15
+      },
+      {
+        label: 'Margin',
+        data: [0.4488, 0.4269, 0.3445, 0.3042, 0.2680, 0.2612],
+        borderColor: '#1D4ED8',
+        backgroundColor: '#1D4ED8',
+        borderWidth: 1.5,
+        pointRadius: 4,
+        pointStyle: 'rectRot',
+        tension: 0.15
+      },
+      {
+        label: 'Random',
+        data: [0.4427, 0.4127, 0.3559, 0.2976, 0.2475, 0.2206],
+        borderColor: '#64748B',
+        backgroundColor: '#64748B',
+        borderWidth: 1.5,
+        pointRadius: 4,
+        pointStyle: 'triangle',
+        tension: 0.15
+      },
+      {
+        label: 'Entropy',
+        data: [0.4247, 0.3995, 0.3438, 0.3124, 0.2585, 0.2579],
+        borderColor: '#3B82F6',
+        backgroundColor: '#3B82F6',
+        borderWidth: 1.5,
+        pointRadius: 4,
+        pointStyle: 'rect',
+        tension: 0.15
+      },
+      {
+        label: 'Badge',
+        data: [0.4202, 0.4215, 0.3361, 0.3195, 0.2539, 0.2214],
+        borderColor: '#475569',
+        backgroundColor: '#475569',
+        borderWidth: 1.5,
+        pointRadius: 4,
+        pointStyle: 'crossRot',
+        tension: 0.15
+      },
+      {
+        label: 'CoreSet',
+        data: [0.4011, 0.3694, 0.3299, 0.2930, 0.2510, 0.2102],
+        borderColor: '#94A3B8',
+        backgroundColor: '#94A3B8',
+        borderWidth: 1.5,
+        pointRadius: 4,
+        pointStyle: 'star',
+        tension: 0.15
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    layout: {
+      padding: { top: 12, right: 16, bottom: 4, left: 4 }
+    },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          font: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif", weight: '400' },
+          color: '#475569',
+          padding: 14,
+          usePointStyle: true,
+          pointStyleWidth: 14
+        }
+      },
+      tooltip: {
+        titleFont: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+        bodyFont: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+        callbacks: {
+          label: function(ctx) {
+            return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(4);
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: '分布不平衡比 ρ',
+          font: { size: 18, weight: '500', family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+          color: '#64748B',
+          padding: { top: 6 }
+        },
+        ticks: {
+          font: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+          color: '#475569'
+        },
+        grid: {
+          color: 'rgba(226, 232, 240, 0.6)',
+          lineWidth: 0.5
+        },
+        border: {
+          color: '#E2E8F0'
+        }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Macro-F1',
+          font: { size: 18, weight: '500', family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+          color: '#64748B',
+          padding: { bottom: 6 }
+        },
+        min: 0.15,
+        max: 0.50,
+        ticks: {
+          font: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+          color: '#475569',
+          stepSize: 0.05,
+          callback: function(val) { return val.toFixed(2); }
+        },
+        grid: {
+          color: 'rgba(226, 232, 240, 0.6)',
+          lineWidth: 0.5
+        },
+        border: {
+          color: '#E2E8F0'
+        }
+      }
+    }
+  }
+});
+  },
+  11: function() {
+Chart.defaults.font.family = "'Alibaba PuHuiTi 3.0', sans-serif";
+Chart.defaults.font.size = 18;
+Chart.defaults.color = '#64748B';
+
+var ctx = document.getElementById('mainChart').getContext('2d');
+
+var labels = ['ρ=1', 'ρ=5', 'ρ=10', 'ρ=20', 'ρ=50', 'ρ=100'];
+
+var datasets = [
+  {
+    label: 'QBC',
+    data: [0.4514, 0.4263, 0.3769, 0.2980, 0.2554, 0.2289],
+    borderColor: '#2563EB',
+    backgroundColor: '#2563EB',
+    borderWidth: 2,
+    pointRadius: 3.5,
+    pointHoverRadius: 5,
+    tension: 0.2
+  },
+  {
+    label: 'Margin',
+    data: [0.4488, 0.4269, 0.3445, 0.3042, 0.2680, 0.2612],
+    borderColor: '#475569',
+    backgroundColor: '#475569',
+    borderWidth: 1.5,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0.2
+  },
+  {
+    label: 'Random',
+    data: [0.4427, 0.4127, 0.3559, 0.2976, 0.2475, 0.2206],
+    borderColor: '#94A3B8',
+    backgroundColor: '#94A3B8',
+    borderWidth: 1.5,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0.2,
+    borderDash: [6, 3]
+  },
+  {
+    label: 'Entropy',
+    data: [0.4247, 0.3995, 0.3438, 0.3124, 0.2585, 0.2579],
+    borderColor: '#64748B',
+    backgroundColor: '#64748B',
+    borderWidth: 1.5,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0.2
+  },
+  {
+    label: 'Badge',
+    data: [0.4202, 0.4215, 0.3361, 0.3195, 0.2539, 0.2214],
+    borderColor: '#7B8BA3',
+    backgroundColor: '#7B8BA3',
+    borderWidth: 1.5,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0.2,
+    borderDash: [3, 3]
+  },
+  {
+    label: 'CoreSet',
+    data: [0.4011, 0.3694, 0.3299, 0.2930, 0.2510, 0.2102],
+    borderColor: '#A8B5C5',
+    backgroundColor: '#A8B5C5',
+    borderWidth: 1.5,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    tension: 0.2,
+    borderDash: [8, 4]
+  }
+];
+
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: datasets
+  },
+  options: {
+    animation: false,
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: {
+      padding: { top: 10, right: 15, bottom: 0, left: 5 }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: '标注比例 ρ',
+          font: { size: 18, weight: '500', family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+          color: '#475569',
+          padding: { top: 8 }
+        },
+        ticks: {
+          font: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+          color: '#64748B'
+        },
+        grid: {
+          color: 'rgba(226, 232, 240, 0.5)',
+          lineWidth: 0.5
+        },
+        border: { color: '#E2E8F0' }
+      },
+      y: {
+        min: 0.15,
+        max: 0.50,
+        title: {
+          display: true,
+          text: 'Macro-F1',
+          font: { size: 18, weight: '500', family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+          color: '#475569',
+          padding: { bottom: 8 }
+        },
+        ticks: {
+          font: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+          color: '#64748B',
+          stepSize: 0.05,
+          callback: function(value) { return value.toFixed(2); }
+        },
+        grid: {
+          color: 'rgba(226, 232, 240, 0.5)',
+          lineWidth: 0.5
+        },
+        border: { color: '#E2E8F0' }
+      }
+    },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          font: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+          color: '#475569',
+          padding: 14,
+          usePointStyle: true,
+          pointStyleWidth: 18
+        }
+      },
+      tooltip: {
+        backgroundColor: '#0F172A',
+        titleFont: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+        bodyFont: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+        padding: 10,
+        callbacks: {
+          label: function(context) {
+            return context.dataset.label + ': ' + context.parsed.y.toFixed(4);
+          }
+        }
+      }
+    }
+  }
+});
+  },
+  18: function() {
+Chart.defaults.font.family = "'Alibaba PuHuiTi 3.0', sans-serif";
+Chart.defaults.font.size = 18;
+Chart.defaults.color = '#475569';
+
+var ctx = document.getElementById('mainChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['\u03C1=1', '\u03C1=10', '\u03C1=50', '\u03C1=100'],
+        datasets: [
+            {
+                label: '\u65E0SSL',
+                data: [0.4217, 0.3573, 0.2894, 0.2571],
+                backgroundColor: '#94A3B8',
+                borderColor: '#94A3B8',
+                borderWidth: 1,
+                borderRadius: 2
+            },
+            {
+                label: 'Base SSL',
+                data: [0.4339, 0.4027, 0.3258, 0.2844],
+                backgroundColor: '#64748B',
+                borderColor: '#64748B',
+                borderWidth: 1,
+                borderRadius: 2
+            },
+            {
+                label: 'Prog r3',
+                data: [0.4422, 0.3776, 0.3322, 0.2847],
+                backgroundColor: '#2563EB',
+                borderColor: '#2563EB',
+                borderWidth: 1,
+                borderRadius: 2
+            },
+            {
+                label: 'Prog r5',
+                data: [0.4208, 0.3838, 0.3228, 0.2988],
+                backgroundColor: 'rgba(37,99,235,0.40)',
+                borderColor: '#2563EB',
+                borderWidth: 1,
+                borderRadius: 2
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        layout: {
+            padding: { top: 4, right: 4, bottom: 0, left: 0 }
+        },
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    font: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif", weight: '500' },
+                    color: '#0F172A',
+                    padding: 12,
+                    usePointStyle: true,
+                    pointStyle: 'rect',
+                    pointStyleWidth: 14
+                }
+            },
+            tooltip: {
+                titleFont: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+                bodyFont: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+                backgroundColor: '#0F172A',
+                titleColor: '#FFFFFF',
+                bodyColor: '#FFFFFF',
+                borderColor: '#2563EB',
+                borderWidth: 1,
+                padding: 10,
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y.toFixed(4);
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    color: 'rgba(226,232,240,0.6)',
+                    drawBorder: false,
+                    lineWidth: 0.5
+                },
+                ticks: {
+                    font: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif", weight: '500' },
+                    color: '#0F172A',
+                    padding: 6
+                }
+            },
+            y: {
+                min: 0.20,
+                max: 0.48,
+                grid: {
+                    color: 'rgba(226,232,240,0.6)',
+                    drawBorder: false,
+                    lineWidth: 0.5
+                },
+                ticks: {
+                    font: { size: 18, family: "'Alibaba PuHuiTi 3.0', sans-serif" },
+                    color: '#475569',
+                    stepSize: 0.05,
+                    padding: 8,
+                    callback: function(val) { return val.toFixed(2); }
+                }
+            }
+        },
+        barPercentage: 0.82,
+        categoryPercentage: 0.72
+    }
+});
+  },
+};
+
+
+  var stage = document.getElementById("stage");
+  var stageWrap = document.getElementById("stage-wrap");
+  var counter = document.getElementById("counter");
+  var prevBtn = document.getElementById("prev");
+  var nextBtn = document.getElementById("next");
+  var fsBtn = document.getElementById("fs");
+  var controls = document.getElementById("controls");
+  var hint = document.getElementById("hint");
+
+  function fitStage() {
+    var rect = stageWrap.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    var scale = Math.min(rect.width / 1280, rect.height / 720);
+    stage.style.transform = "scale(" + scale + ")";
+  }
+
+  function renderSlide() {
+    var pages = document.querySelectorAll(".slide-page");
+    for (var i = 0; i < pages.length; i++) {
+      pages[i].style.display = "none";
+    }
+    var slideNum = idx + 1;
+    var current = document.getElementById("slide-" + slideNum);
+    if (current) {
+      current.style.display = "block";
+    }
+
+    if (typeof slideChartScripts !== 'undefined' && slideChartScripts[slideNum]) {
+      if (typeof Chart !== 'undefined') {
+        Object.keys(Chart.instances).forEach(function(key) {
+          Chart.instances[key].destroy();
+        });
+      }
+      requestAnimationFrame(function() {
+        setTimeout(function() {
+          try {
+            slideChartScripts[slideNum]();
+            chartInitialized[slideNum] = true;
+          } catch(e) {
+            console.warn('Chart init failed:', e);
+          }
+        }, 100);
+      });
+    }
+
+    counter.textContent = slideNum + " / " + TOTAL;
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx >= TOTAL - 1;
+  }
+
+  function go(delta) {
+    var next = idx + delta;
+    if (next < 0 || next >= TOTAL) return false;
+    idx = next;
+    renderSlide();
+    return true;
+  }
+
+  function jumpTo(n) {
+    if (n < 1 || n > TOTAL) return false;
+    idx = n - 1;
+    renderSlide();
+    return true;
+  }
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen().catch(function() {});
+    }
+  }
+
+  function showControls() {
+    controls.classList.remove("fade");
+    hint.style.opacity = "1";
+    if (fadeTimer) clearTimeout(fadeTimer);
+    fadeTimer = setTimeout(function() {
+      controls.classList.add("fade");
+      hint.style.opacity = "0";
+    }, 2500);
+  }
+
+  prevBtn.addEventListener("click", function() { go(-1); });
+  nextBtn.addEventListener("click", function() { go(1); });
+  fsBtn.addEventListener("click", function() { toggleFullscreen(); });
+
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "ArrowLeft" || e.key === "PageUp") { if (go(-1)) e.preventDefault(); }
+    else if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { if (go(1)) e.preventDefault(); }
+    else if (e.key === "Home") { if (jumpTo(1)) e.preventDefault(); }
+    else if (e.key === "End") { if (jumpTo(TOTAL)) e.preventDefault(); }
+    else if (e.key === "f" || e.key === "F") { toggleFullscreen(); e.preventDefault(); }
+    else if (e.key === "Escape") { if (document.fullscreenElement) document.exitFullscreen(); }
+    else if (/^[0-9]$/.test(e.key)) {
+      var n = parseInt(e.key, 10);
+      if (n >= 1 && jumpTo(n)) e.preventDefault();
+    }
+  });
+
+  document.addEventListener("mousemove", function(e) {
+    if (e.clientY > window.innerHeight - 150) showControls();
+  });
+
+  if (typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(fitStage).observe(stageWrap);
+  } else {
+    window.addEventListener("resize", fitStage);
+  }
+
+  fitStage();
+  renderSlide();
+  showControls();
+
+  // Initialize KaTeX
+  if (typeof renderMathInElement !== 'undefined') {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+        {left: '\\(', right: '\\)', display: false},
+        {left: '\\[', right: '\\]', display: true}
+      ],
+      throwOnError: false
+    });
+  }
+})();
+</script>
+</body>
+</html>

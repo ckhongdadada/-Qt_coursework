@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlexMatch框架详述</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+
+:root {
+  /* Background */
+  --bg-primary: #ffffff;
+  --bg-gradient-to: #f6f8fb;
+
+  /* Card */
+  --card-from: #ffffff;
+  --card-to: #f6f8fb;
+  --card-border: rgba(10,29,58,0.06);
+  --card-radius: 12px;
+
+  /* Text */
+  --text-primary: #0a1d3a;
+  --text-secondary: #64748b;
+
+  /* Accent */
+  --accent-primary: #2563EB;
+  --accent-primary-dark: #1D4ED8;
+  --accent-secondary: #059669;
+
+  /* Typography */
+  --font-display: -apple-system, 'SF Pro Display', 'Inter Tight', 'Inter', BlinkMacSystemFont, sans-serif;
+  --font-body: -apple-system, 'SF Pro Text', 'Inter', sans-serif;
+  --font-serif: 'Instrument Serif', 'Fraunces', Georgia, serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+
+  /* Letter Spacing */
+  --ls-display: -0.042em;
+  --ls-headline: -0.02em;
+  --ls-body: -0.005em;
+  --ls-label: 0.22em;
+}
+
+
+/* Reset & Base */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.slide {
+  width: 1280px;
+  height: 720px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  font-feature-settings: 'kern', 'liga', 'calt', 'ss01', 'cv11', 'ccmp';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Top accent bar - subtle */
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-dark));
+  opacity: 0.8;
+}
+
+/* Page header with dot-pulse label */
+.page-header {
+  padding: 48px 64px 0;
+}
+
+.page-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 16px;
+}
+
+.page-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  line-height: 1.2;
+}
+
+/* Serif italic for emphasis */
+.page-title em,
+.highlight em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-primary);
+}
+
+/* Header divider */
+.header-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--card-border);
+  margin: 20px 0;
+}
+
+/* Content area */
+.content {
+  padding: 24px 64px 48px;
+  flex: 1;
+}
+
+/* Cards grid - Bento style */
+.cards-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.cards-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cards-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.cards-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Card - Apple minimal */
+.card {
+  background: linear-gradient(135deg, var(--card-from), var(--card-to));
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  margin-bottom: 8px;
+}
+
+.card-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: var(--ls-body);
+  line-height: 1.6;
+}
+
+/* Data numbers - tabular-nums */
+.data-number {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums proportional-nums;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.data-number.large {
+  font-size: 48px;
+  letter-spacing: var(--ls-display);
+}
+
+.data-number.medium {
+  font-size: 32px;
+  letter-spacing: var(--ls-headline);
+}
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.data-table td {
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Page number */
+.page-number {
+  position: absolute;
+  bottom: 24px;
+  right: 48px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Corner decoration lines - Apple style */
+.corner-lines {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.corner-lines::before,
+.corner-lines::after {
+  content: '';
+  position: absolute;
+  background: var(--accent-primary);
+  opacity: 0.15;
+}
+
+.corner-lines::before {
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 20px;
+}
+
+.corner-lines::after {
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 1px;
+}
+
+/* Inner frame - subtle border */
+.inner-frame {
+  position: absolute;
+  inset: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Hexagon decorations - minimal */
+.hex-decoration {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.08;
+}
+
+/* Formulas */
+.formula-block {
+  background: var(--bg-gradient-to);
+  border-left: 3px solid var(--accent-primary);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+
+.formula {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+/* KaTeX overrides */
+.katex { font-size: 1em; }
+.katex-display { margin: 0; }
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+</style>
+</head>
+<body>
+
+<section id="slide-10" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">FLEXMATCH 框架</div>
+    <h1 class="page-title">FlexMatch框架详述</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="top-bar"></div>
+
+<div class="slide-root">
+    <div class="section-label">FLEXMATCH 框架</div>
+    <div class="separator"></div>
+    <h1 class="slide-title">FlexMatch框架详述</h1>
+
+    <!-- Row 1: 3 pipeline step cards -->
+    <div class="pipeline-row">
+        <!-- Step 1: Weak augmentation -->
+        <div class="pipeline-card">
+            <div class="card-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M3 9h18M9 3v18"/>
+                </svg>
+            </div>
+            <div class="card-step-label">Step 1</div>
+            <div class="card-title">弱增强与伪标签生成</div>
+            <div class="card-desc">对未标注样本施加弱增强（RandomCrop + RandomFlip），模型预测生成伪标签作为监督信号。与FixMatch一致。</div>
+        </div>
+
+        <!-- Step 2: Class-adaptive threshold -->
+        <div class="pipeline-card">
+            <div class="card-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+            </div>
+            <div class="card-step-label">Step 2</div>
+            <div class="card-title">类别自适应置信度阈值</div>
+            <div class="card-desc">不同于FixMatch固定<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo lspace="0em" rspace="0em">=</mo><mn>0.95</mn></mrow><annotation encoding="application/x-tex">\tau{=}0.95</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mord"><span class="mrel">=</span></span><span class="mord">0.95</span></span></span></span>，FlexMatch为每个类别c学习独立阈值<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\tau_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>：学得好的类别阈值降低，学习不足的类别阈值保持高位，训练过程中动态调整。</div>
+        </div>
+
+        <!-- Step 3: Strong augmentation + consistency -->
+        <div class="pipeline-card">
+            <div class="card-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+                </svg>
+            </div>
+            <div class="card-step-label">Step 3</div>
+            <div class="card-title">强增强与一致性正则化</div>
+            <div class="card-desc">对同一样本施加强增强（RandAugment + CutOut），以类别自适应阈值为判据，计算弱增强伪标签与强增强预测的一致性交叉熵损失。</div>
+        </div>
+    </div>
+
+    <!-- Row 2: Flow diagram + Limitation -->
+    <div class="bottom-row">
+        <!-- SVG Flow Diagram + Loss Formula -->
+        <div class="flow-panel">
+            <div class="flow-label">核心流程</div>
+            <svg width="100%" height="80" viewBox="0 0 680 80" preserveAspectRatio="xMidYMid meet">
+                <!-- Nodes -->
+                <rect x="0" y="20" width="88" height="36" rx="6" fill="rgba(37,99,235,0.08)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="44" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#0F172A">弱增强</text>
+
+                <line x1="92" y1="38" x2="118" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <rect x="122" y="20" width="88" height="36" rx="6" fill="rgba(37,99,235,0.08)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="166" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#0F172A">模型预测</text>
+
+                <line x1="214" y1="38" x2="240" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <rect x="244" y="20" width="88" height="36" rx="6" fill="rgba(37,99,235,0.08)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="288" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#0F172A">伪标签</text>
+
+                <line x1="336" y1="38" x2="362" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <!-- Threshold diamond with class-adaptive τ_c -->
+                <polygon points="398,20 428,38 398,56 368,38" fill="rgba(37,99,235,0.06)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="398" y="42" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#2563EB">τ_c</text>
+
+                <line x1="430" y1="38" x2="456" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <rect x="460" y="20" width="88" height="36" rx="6" fill="rgba(37,99,235,0.08)" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="504" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="500" fill="#0F172A">强增强</text>
+
+                <line x1="552" y1="38" x2="578" y2="38" stroke="#2563EB" stroke-width="1.2" marker-end="url(#arrowhead)"/>
+
+                <rect x="582" y="20" width="94" height="36" rx="6" fill="#2563EB" stroke="#2563EB" stroke-width="0.8"/>
+                <text x="629" y="43" text-anchor="middle" font-family="'Alibaba PuHuiTi 3.0', sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">一致性损失</text>
+
+                <!-- Arrow marker definition -->
+                <defs>
+                    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                        <polygon points="0 0, 8 3, 0 6" fill="#2563EB"/>
+                    </marker>
+                </defs>
+            </svg>
+            <div class="loss-formula"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>L</mi><mo>=</mo><msub><mi>L</mi><mtext>supervised</mtext></msub><mo>+</mo><mi>λ</mi><mo>⋅</mo><msub><mi>L</mi><mtext>unsupervised</mtext></msub><mo stretchy="false">(</mo><msub><mi>τ</mi><mi>c</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">L = L_{\text{supervised}} + \lambda \cdot L_{\text{unsupervised}}(\tau_c)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">supervised</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">unsupervised</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></div>
+        </div>
+
+        <!-- Limitation card -->
+        <div class="limitation-card">
+            <div class="limitation-header">
+                <svg class="limitation-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div class="limitation-title">长尾分布下的局限性</div>
+            </div>
+            <div class="limitation-point">
+                <div class="limitation-dot"></div>
+                <div class="limitation-text">自适应阈值<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\tau_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>相比FixMatch固定阈值部分缓解了类别不平衡问题</div>
+            </div>
+            <div class="limitation-point">
+                <div class="limitation-dot"></div>
+                <div class="limitation-text">但仍未显式建模长尾分布结构，无法区分头类与尾类的学习差异</div>
+            </div>
+            <div class="limitation-point">
+                <div class="limitation-dot"></div>
+                <div class="limitation-text">极端不平衡下<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>τ</mi><mi>c</mi></msub></mrow><annotation encoding="application/x-tex">\tau_c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1132em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>动态调节幅度有限，尾类伪标签质量仍不足</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wireframe hexagons bottom-right -->
+<svg class="hexagons" width="200" height="160" viewBox="0 0 200 160">
+    <polygon points="140,10 170,27 170,61 140,78 110,61 110,27" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.3"/>
+    <polygon points="170,50 195,64 195,92 170,106 145,92 145,64" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.25"/>
+    <polygon points="120,65 145,79 145,107 120,121 95,107 95,79" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.35"/>
+    <polygon points="155,100 175,112 175,136 155,148 135,136 135,112" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.28"/>
+    <polygon points="100,110 118,120 118,140 100,150 82,140 82,120" fill="none" stroke="#2563EB" stroke-width="1" opacity="0.32"/>
+</svg>
+
+<div class="page-number">10 / 20</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">10 / 20</div>
+</section>
+
+</body>
+</html>
