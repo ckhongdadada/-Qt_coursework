@@ -1,0 +1,2529 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>软件体系结构与设计模式 - 期中报告</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="C:\Users\28414\Desktop\项目分类\qt c++\软件体系结构期末提交包\03_报告\midterm_pdf_style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">软件体系结构与设计模式 - 期中报告</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#软件体系结构与设计模式---期中报告"
+id="toc-软件体系结构与设计模式---期中报告">软件体系结构与设计模式 -
+期中报告</a>
+<ul>
+<li><a
+href="#项目名称学业发展规划系统-personal-development-planning-system"
+id="toc-项目名称学业发展规划系统-personal-development-planning-system">项目名称：学业发展规划系统
+(Personal Development Planning System)</a></li>
+<li><a href="#项目代码托管链接"
+id="toc-项目代码托管链接">项目代码托管链接</a></li>
+<li><a href="#一项目概述" id="toc-一项目概述">一、项目概述</a></li>
+<li><a href="#二系统架构设计"
+id="toc-二系统架构设计">二、系统架构设计</a></li>
+<li><a href="#三模块设计" id="toc-三模块设计">三、模块设计</a></li>
+<li><a href="#四数据库设计"
+id="toc-四数据库设计">四、数据库设计</a></li>
+<li><a href="#五接口设计" id="toc-五接口设计">五、接口设计</a></li>
+<li><a href="#六核心功能状态设计"
+id="toc-六核心功能状态设计">六、核心功能状态设计</a></li>
+<li><a href="#八关键技术实现"
+id="toc-八关键技术实现">八、关键技术实现</a></li>
+<li><a href="#九设计模式应用"
+id="toc-九设计模式应用">九、设计模式应用</a></li>
+<li><a href="#十项目分工" id="toc-十项目分工">十、项目分工</a></li>
+<li><a href="#十一时间规划与甘特图"
+id="toc-十一时间规划与甘特图">十一、时间规划与甘特图</a></li>
+<li><a href="#十二期中完成度总结"
+id="toc-十二期中完成度总结">十二、期中完成度总结</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="软件体系结构与设计模式---期中报告">软件体系结构与设计模式 -
+期中报告</h1>
+<h2
+id="项目名称学业发展规划系统-personal-development-planning-system">项目名称：学业发展规划系统
+(Personal Development Planning System)</h2>
+<h2 id="项目代码托管链接">项目代码托管链接</h2>
+<ul>
+<li>GitHub 仓库：<a
+href="https://github.com/ckhongdadada/-Qt_coursework">https://github.com/ckhongdadada/-Qt_coursework</a></li>
+<li>代码托管平台：GitHub</li>
+<li>说明：仓库按阶段保存项目演进过程，包含源码、文档和运行说明，用于满足课程对代码托管平台链接和版本管理过程的要求。</li>
+</ul>
+<h2 id="一项目概述">一、项目概述</h2>
+<h3 id="项目背景">1.1 项目背景</h3>
+<p>学业发展规划系统是一个面向大学生的个人发展管理工具，旨在帮助学生系统化管理学业发展过程中的各类数据，包括课程学习、目标设定、角色经历、成果记录、活动参与、求职追踪等，并提供数据分析、简历生成、智能建议等功能。</p>
+<h3 id="需求说明">1.2 需求说明</h3>
+<h4 id="功能性需求">1.2.1 功能性需求</h4>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 38%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>需求编号</th>
+<th>需求描述</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-001</td>
+<td>用户可以管理个人课程信息，包括添加、编辑、删除课程</td>
+<td>用户调研</td>
+</tr>
+<tr>
+<td>FR-002</td>
+<td>系统自动计算GPA和学分统计</td>
+<td>核心功能需求</td>
+</tr>
+<tr>
+<td>FR-003</td>
+<td>用户可以设定个人发展目标，跟踪进度</td>
+<td>用户调研</td>
+</tr>
+<tr>
+<td>FR-004</td>
+<td>用户可以管理角色经历（社团、实习、项目等）</td>
+<td>用户调研</td>
+</tr>
+<tr>
+<td>FR-005</td>
+<td>用户可以记录个人成果（竞赛、证书、论文等）</td>
+<td>用户调研</td>
+</tr>
+<tr>
+<td>FR-006</td>
+<td>系统提供数据分析功能，包括学期对比、同学对标</td>
+<td>核心功能需求</td>
+</tr>
+<tr>
+<td>FR-007</td>
+<td>用户可以生成个性化简历，支持多格式导出</td>
+<td>用户调研</td>
+</tr>
+<tr>
+<td>FR-008</td>
+<td>系统提供AI智能分析和建议功能</td>
+<td>扩展功能需求</td>
+</tr>
+<tr>
+<td>FR-009</td>
+<td>用户可以导入CSV数据进行批量录入</td>
+<td>用户调研</td>
+</tr>
+<tr>
+<td>FR-010</td>
+<td>系统支持用户注册和登录</td>
+<td>基础功能需求</td>
+</tr>
+</tbody>
+</table>
+<h4 id="非功能性需求">1.2.2 非功能性需求</h4>
+<table>
+<thead>
+<tr>
+<th>需求编号</th>
+<th>需求描述</th>
+<th>指标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NFR-001</td>
+<td>系统启动时间</td>
+<td>&lt; 1秒</td>
+</tr>
+<tr>
+<td>NFR-002</td>
+<td>页面响应时间</td>
+<td>&lt; 500ms</td>
+</tr>
+<tr>
+<td>NFR-003</td>
+<td>数据存储安全性</td>
+<td>密码加密存储</td>
+</tr>
+<tr>
+<td>NFR-004</td>
+<td>跨平台支持</td>
+<td>Windows/macOS/Linux</td>
+</tr>
+<tr>
+<td>NFR-005</td>
+<td>代码可维护性</td>
+<td>模块化设计，注释覆盖率&gt;30%</td>
+</tr>
+</tbody>
+</table>
+<h3 id="用例分析">1.3 用例分析</h3>
+<h4 id="用例图">1.3.1 用例图</h4>
+<pre><code>┌─────────────┐
+│   用户      │
+└──────┬──────┘
+       │
+   ┌───┴───┬──────────────┬──────────────┐
+   ▼       ▼              ▼              ▼
+┌──────┐┌───────┐    ┌──────────┐    ┌──────────┐
+│课程管理││目标管理│    │简历生成   │    │数据分析   │
+└──────┘└───────┘    └──────────┘    └──────────┘
+   │       │              │              │
+   ▼       ▼              ▼              ▼
+ 添加课程  创建目标     编辑简历      查看报告
+ 编辑课程  跟踪进度     预览简历      学期对比
+ 删除课程  设置优先级   导出简历      同学对标</code></pre>
+<h4 id="核心用例描述">1.3.2 核心用例描述</h4>
+<p><strong>用例1：添加课程</strong></p>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr>
+<th>项</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用例名称</td>
+<td>添加课程</td>
+</tr>
+<tr>
+<td>参与者</td>
+<td>用户</td>
+</tr>
+<tr>
+<td>前置条件</td>
+<td>用户已登录系统</td>
+</tr>
+<tr>
+<td>后置条件</td>
+<td>课程信息保存到数据库</td>
+</tr>
+<tr>
+<td>基本流程</td>
+<td>1. 用户进入课程管理页面<br>2. 点击”添加课程”<br>3.
+填写课程信息<br>4. 点击”保存”<br>5. 系统验证并保存</td>
+</tr>
+<tr>
+<td>异常流程</td>
+<td>课程名称为空时提示错误</td>
+</tr>
+</tbody>
+</table>
+<p><strong>用例2：生成简历</strong></p>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr>
+<th>项</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用例名称</td>
+<td>生成简历</td>
+</tr>
+<tr>
+<td>参与者</td>
+<td>用户</td>
+</tr>
+<tr>
+<td>前置条件</td>
+<td>用户已登录，已有课程/经历/成果等数据</td>
+</tr>
+<tr>
+<td>后置条件</td>
+<td>生成JSON/HTML格式简历</td>
+</tr>
+<tr>
+<td>基本流程</td>
+<td>1. 用户进入简历页面<br>2. 选择简历模板<br>3. 编辑简历内容<br>4.
+点击”预览”<br>5. 点击”导出”选择格式</td>
+</tr>
+<tr>
+<td>扩展流程</td>
+<td>用户可自定义简历布局</td>
+</tr>
+</tbody>
+</table>
+<p><strong>用例3：查看分析报告</strong></p>
+<table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 60%" />
+</colgroup>
+<thead>
+<tr>
+<th>项</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用例名称</td>
+<td>查看分析报告</td>
+</tr>
+<tr>
+<td>参与者</td>
+<td>用户</td>
+</tr>
+<tr>
+<td>前置条件</td>
+<td>用户已登录，有课程数据</td>
+</tr>
+<tr>
+<td>后置条件</td>
+<td>显示GPA趋势和学期对比</td>
+</tr>
+<tr>
+<td>基本流程</td>
+<td>1. 用户进入分析页面<br>2. 选择学期范围<br>3. 系统生成GPA趋势图<br>4.
+系统生成同学对标分析</td>
+</tr>
+</tbody>
+</table>
+<h3 id="项目目标">1.4 项目目标</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>目标</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据管理</td>
+<td>提供课程、目标、角色、成果、经历、活动、岗位等数据的CRUD管理</td>
+</tr>
+<tr>
+<td>数据分析</td>
+<td>提供GPA计算、学期对比、同学对标等分析功能</td>
+</tr>
+<tr>
+<td>简历生成</td>
+<td>完成模块设计与原型方案，计划在后续阶段完善预览、编辑和导出体验</td>
+</tr>
+<tr>
+<td>智能辅助</td>
+<td>完成AI助手接入方案设计与基础原型，后续继续完善模型调用、建议生成和结果回填</td>
+</tr>
+<tr>
+<td>跨平台支持</td>
+<td>支持Windows桌面应用和Web浏览器访问</td>
+</tr>
+</tbody>
+</table>
+<h3 id="技术栈">1.5 技术栈</h3>
+<table>
+<thead>
+<tr>
+<th>技术</th>
+<th>版本</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C++</td>
+<td>17</td>
+<td>核心开发语言</td>
+</tr>
+<tr>
+<td>Qt6</td>
+<td>6.5+</td>
+<td>UI框架、HTTP服务器、数据库访问</td>
+</tr>
+<tr>
+<td>SQLite</td>
+<td>3.x</td>
+<td>嵌入式关系型数据库</td>
+</tr>
+<tr>
+<td>CMake</td>
+<td>3.25+</td>
+<td>构建系统</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>3.10+</td>
+<td>AI服务后端</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="二系统架构设计">二、系统架构设计</h2>
+<h3 id="整体架构">2.1 整体架构</h3>
+<p>系统采用<strong>六层分层架构</strong>，职责明确，易于维护和扩展：</p>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                      表现层 (Presentation)                   │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  MainWindow                                           │  │
+│  │  ├── Pages (OverviewPage, CoursesPage, ...)          │  │
+│  │  ├── Widgets (SidebarWidget, AiPanelWidget, ...)     │  │
+│  │  └── Dialogs (CourseEditorDialog, GoalEditorDialog, ...)│
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      控制层 (Controller)                     │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  AppShellController      - 主窗口Shell控制            │  │
+│  │  DataRefreshCoordinator  - 数据刷新协调               │  │
+│  │  BackendRuntimeController- 后端运行时控制             │  │
+│  │  AiContextMediator       - AI上下文中介               │  │
+│  │  CrudPageController      - CRUD页面控制器             │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      服务层 (Service)                        │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  CourseService, GoalService, RoleService, ...        │  │
+│  │  AiService, ResumeService, ImportService, ...        │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      数据访问层 (DAO)                        │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  DaoBase, CourseDao, GoalDao, RoleDao, ...           │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      模型层 (Model)                          │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Course, Role, Achievement, Experience, ...          │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      数据层 (Data)                           │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  SQLite (pdp.db)  │  QSettings  │  JSON Files        │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘</code></pre>
+<h3 id="分层职责">2.2 分层职责</h3>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>层次</th>
+<th>目录</th>
+<th>职责</th>
+<th>关键类</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>表现层</strong></td>
+<td>src/client/</td>
+<td>UI展示、用户交互</td>
+<td>MainWindow, Pages, Widgets, Dialogs</td>
+</tr>
+<tr>
+<td><strong>控制层</strong></td>
+<td>src/client/core/</td>
+<td>跨组件协调、状态管理</td>
+<td>AppShellController, DataRefreshCoordinator</td>
+</tr>
+<tr>
+<td><strong>服务层</strong></td>
+<td>src/service/</td>
+<td>业务逻辑封装</td>
+<td>CourseService, AuthService, AiService</td>
+</tr>
+<tr>
+<td><strong>数据访问层</strong></td>
+<td>src/dao/</td>
+<td>数据库CRUD操作</td>
+<td>DaoBase, CourseDao, UserDao</td>
+</tr>
+<tr>
+<td><strong>模型层</strong></td>
+<td>src/model/</td>
+<td>数据模型定义</td>
+<td>Course, Role, Achievement</td>
+</tr>
+<tr>
+<td><strong>数据层</strong></td>
+<td>SQLite/QSettings</td>
+<td>数据持久化</td>
+<td>pdp.db</td>
+</tr>
+</tbody>
+</table>
+<h3 id="单模式架构">2.3 单模式架构</h3>
+<p>系统采用纯桌面应用架构，客户端直接调用Service层：</p>
+<pre><code>┌─────────────────────────────────────┐
+│      Qt Desktop Client              │
+│  ┌──────────┐                       │
+│  │  Pages   │ ──直接调用──→ Service │
+│  └──────────┘                       │
+└─────────────────────────────────────┘</code></pre>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>调用方式</td>
+<td>直接调用Service层</td>
+</tr>
+<tr>
+<td>优势</td>
+<td>性能高、延迟低、无需序列化</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>本地桌面应用</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="三模块设计">三、模块设计</h2>
+<h3 id="模块划分">3.1 模块划分</h3>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 38%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr>
+<th>模块</th>
+<th>功能描述</th>
+<th>主要文件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>课程管理</strong></td>
+<td>课程CRUD、GPA计算、学分统计</td>
+<td>CoursesPage, CourseService, CourseDao</td>
+</tr>
+<tr>
+<td><strong>目标管理</strong></td>
+<td>目标CRUD、进度跟踪、优先级管理</td>
+<td>GoalsPage, GoalService, GoalDao</td>
+</tr>
+<tr>
+<td><strong>角色管理</strong></td>
+<td>角色CRUD、角色类型分类</td>
+<td>RolesPage, RoleService, RoleDao</td>
+</tr>
+<tr>
+<td><strong>成果管理</strong></td>
+<td>成果CRUD、成果级别管理</td>
+<td>AchievementsPage, AchievementService</td>
+</tr>
+<tr>
+<td><strong>经历管理</strong></td>
+<td>经历CRUD、时间线展示</td>
+<td>ExperiencesPage, ExperienceService</td>
+</tr>
+<tr>
+<td><strong>活动管理</strong></td>
+<td>活动CRUD、活动分类</td>
+<td>ActivitiesPage, ActivityService</td>
+</tr>
+<tr>
+<td><strong>岗位管理</strong></td>
+<td>岗位CRUD、需求匹配</td>
+<td>JobsPage, JobService, JobDao</td>
+</tr>
+<tr>
+<td><strong>数据分析</strong></td>
+<td>GPA趋势、学期对比、同学对标</td>
+<td>AnalysisPage, AnalyticsService</td>
+</tr>
+<tr>
+<td><strong>简历生成</strong></td>
+<td>完成设计与原型，后续完善预览、编辑和导出流程</td>
+<td>ResumePage, ResumeService</td>
+</tr>
+<tr>
+<td><strong>AI助手</strong></td>
+<td>完成接入方案与基础原型，后续完善模型调用和建议回填</td>
+<td>AiPanelWidget, AiService</td>
+</tr>
+<tr>
+<td><strong>数据导入</strong></td>
+<td>完成导入流程设计与原型，后续完善校验、错误提示和批量处理</td>
+<td>ImportsPage, ImportService</td>
+</tr>
+<tr>
+<td><strong>用户认证</strong></td>
+<td>注册、登录、Token管理</td>
+<td>AuthApi, AuthService</td>
+</tr>
+</tbody>
+</table>
+<h3 id="核心协调器设计">3.2 核心协调器设计</h3>
+<h4 id="appshellcontroller">3.2.1 AppShellController</h4>
+<p><strong>职责</strong>：管理主窗口Shell行为</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> AppShellController <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> onPageChanged<span class="op">(</span><span class="dt">int</span> index<span class="op">);</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> updateTopbarForPage<span class="op">(</span><span class="dt">int</span> index<span class="op">);</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> updateContentWidthForPage<span class="op">(</span><span class="dt">int</span> index<span class="op">);</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<h4 id="datarefreshcoordinator">3.2.2 DataRefreshCoordinator</h4>
+<p><strong>职责</strong>：统一管理跨页面数据刷新</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DataRefreshCoordinator <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> bindPages<span class="op">(</span>OverviewPage<span class="op">*</span> overview<span class="op">,</span> CoursesPage<span class="op">*</span> courses<span class="op">,</span> <span class="op">...);</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> refreshByDomain<span class="op">(</span>DataDomain domain<span class="op">);</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> refreshAll<span class="op">();</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p><strong>刷新联动表</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>触发域</th>
+<th>刷新页面</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>所有域</td>
+<td>Overview (统一刷新)</td>
+</tr>
+<tr>
+<td>Courses</td>
+<td>Analysis, Timeline, Resume</td>
+</tr>
+<tr>
+<td>Goals</td>
+<td>Analysis, Timeline, Resume</td>
+</tr>
+<tr>
+<td>Roles</td>
+<td>Analysis, Resume</td>
+</tr>
+<tr>
+<td>Achievements</td>
+<td>Analysis, Resume</td>
+</tr>
+<tr>
+<td>Experiences</td>
+<td>Analysis, Timeline, Resume</td>
+</tr>
+<tr>
+<td>Activities</td>
+<td>Analysis, Timeline, Resume</td>
+</tr>
+<tr>
+<td>Jobs</td>
+<td>Analysis, Timeline</td>
+</tr>
+<tr>
+<td>All</td>
+<td>所有页面（导入后）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>说明</strong>：Overview页面在任意数据域变化时都会刷新，因此放在所有域的通用处理中。</p>
+<h4 id="backendruntimecontroller">3.2.3 BackendRuntimeController</h4>
+<p><strong>职责</strong>：管理后端服务生命周期</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> BackendRuntimeController <span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> startBackendServer<span class="op">();</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> stopBackendServer<span class="op">();</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> insertSampleDataIfNeeded<span class="op">();</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<h4 id="aicontextmediator">3.2.4 AiContextMediator</h4>
+<p><strong>职责</strong>：管理AI上下文传递</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> AiContextMediator <span class="op">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> eventFilter<span class="op">(</span><span class="ex">QObject</span><span class="op">*</span> watched<span class="op">,</span> <span class="ex">QEvent</span><span class="op">*</span> event<span class="op">)</span> <span class="kw">override</span><span class="op">;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> pushSelectionToPanel<span class="op">(</span><span class="at">const</span> <span class="ex">QString</span><span class="op">&amp;</span> text<span class="op">);</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<hr />
+<h2 id="四数据库设计">四、数据库设计</h2>
+<h3 id="数据库选型">4.1 数据库选型</h3>
+<table>
+<thead>
+<tr>
+<th>选型</th>
+<th>SQLite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>类型</td>
+<td>嵌入式关系型数据库</td>
+</tr>
+<tr>
+<td>优势</td>
+<td>零配置、单文件、跨平台、高性能</td>
+</tr>
+<tr>
+<td>存储位置</td>
+<td>pdp.db（项目根目录）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="表结构设计">4.2 表结构设计</h3>
+<h4 id="课程表-courses">4.2.1 课程表 (courses)</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PRIMARY KEY</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>name</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+<td>课程名称</td>
+</tr>
+<tr>
+<td>code</td>
+<td>TEXT</td>
+<td>-</td>
+<td>课程代码</td>
+</tr>
+<tr>
+<td>credits</td>
+<td>REAL</td>
+<td>DEFAULT 0</td>
+<td>学分</td>
+</tr>
+<tr>
+<td>semester</td>
+<td>TEXT</td>
+<td>-</td>
+<td>学期</td>
+</tr>
+<tr>
+<td>category</td>
+<td>TEXT</td>
+<td>DEFAULT ‘Required’</td>
+<td>类别</td>
+</tr>
+<tr>
+<td>score</td>
+<td>REAL</td>
+<td>DEFAULT 0</td>
+<td>分数</td>
+</tr>
+<tr>
+<td>grade_point</td>
+<td>REAL</td>
+<td>DEFAULT 0</td>
+<td>绩点</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TEXT</td>
+<td>DEFAULT ‘Planned’</td>
+<td>状态</td>
+</tr>
+<tr>
+<td>teacher</td>
+<td>TEXT</td>
+<td>-</td>
+<td>教师</td>
+</tr>
+<tr>
+<td>location</td>
+<td>TEXT</td>
+<td>-</td>
+<td>地点</td>
+</tr>
+<tr>
+<td>description</td>
+<td>TEXT</td>
+<td>-</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>tags</td>
+<td>TEXT</td>
+<td>-</td>
+<td>标签</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>更新时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>索引</strong>：code, semester, status</p>
+<h4 id="角色表-roles">4.2.2 角色表 (roles)</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PRIMARY KEY</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>title</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+<td>角色标题</td>
+</tr>
+<tr>
+<td>type</td>
+<td>TEXT</td>
+<td>-</td>
+<td>角色类型</td>
+</tr>
+<tr>
+<td>organization</td>
+<td>TEXT</td>
+<td>-</td>
+<td>组织名称</td>
+</tr>
+<tr>
+<td>description</td>
+<td>TEXT</td>
+<td>-</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>start_date</td>
+<td>TEXT</td>
+<td>-</td>
+<td>开始日期</td>
+</tr>
+<tr>
+<td>end_date</td>
+<td>TEXT</td>
+<td>-</td>
+<td>结束日期</td>
+</tr>
+<tr>
+<td>is_active</td>
+<td>INTEGER</td>
+<td>DEFAULT 1</td>
+<td>是否在职</td>
+</tr>
+<tr>
+<td>achievements</td>
+<td>TEXT</td>
+<td>-</td>
+<td>成就</td>
+</tr>
+<tr>
+<td>contact</td>
+<td>TEXT</td>
+<td>-</td>
+<td>联系方式</td>
+</tr>
+<tr>
+<td>supervisor</td>
+<td>TEXT</td>
+<td>-</td>
+<td>指导老师</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>更新时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>索引</strong>：type, is_active</p>
+<h4 id="成果表-achievements">4.2.3 成果表 (achievements)</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PRIMARY KEY</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>title</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+<td>成果标题</td>
+</tr>
+<tr>
+<td>type</td>
+<td>TEXT</td>
+<td>-</td>
+<td>类型（竞赛/证书/项目/论文）</td>
+</tr>
+<tr>
+<td>level</td>
+<td>TEXT</td>
+<td>-</td>
+<td>级别（国家级/省级/校级/院级）</td>
+</tr>
+<tr>
+<td>organization</td>
+<td>TEXT</td>
+<td>-</td>
+<td>颁发组织</td>
+</tr>
+<tr>
+<td>description</td>
+<td>TEXT</td>
+<td>-</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>date</td>
+<td>TEXT</td>
+<td>-</td>
+<td>获得日期</td>
+</tr>
+<tr>
+<td>certificate</td>
+<td>TEXT</td>
+<td>-</td>
+<td>证书编号</td>
+</tr>
+<tr>
+<td>related_course</td>
+<td>TEXT</td>
+<td>-</td>
+<td>相关课程</td>
+</tr>
+<tr>
+<td>team_members</td>
+<td>TEXT</td>
+<td>-</td>
+<td>团队成员</td>
+</tr>
+<tr>
+<td>ranking</td>
+<td>TEXT</td>
+<td>-</td>
+<td>排名</td>
+</tr>
+<tr>
+<td>prize</td>
+<td>TEXT</td>
+<td>-</td>
+<td>奖项</td>
+</tr>
+<tr>
+<td>verified</td>
+<td>INTEGER</td>
+<td>DEFAULT 0</td>
+<td>是否验证</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>更新时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>索引</strong>：type, level, date</p>
+<h4 id="经历表-experiences">4.2.4 经历表 (experiences)</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PRIMARY KEY</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>title</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+<td>经历标题</td>
+</tr>
+<tr>
+<td>type</td>
+<td>TEXT</td>
+<td>-</td>
+<td>类型（实习/项目/研究/竞赛）</td>
+</tr>
+<tr>
+<td>organization</td>
+<td>TEXT</td>
+<td>-</td>
+<td>组织</td>
+</tr>
+<tr>
+<td>role</td>
+<td>TEXT</td>
+<td>-</td>
+<td>担任角色</td>
+</tr>
+<tr>
+<td>description</td>
+<td>TEXT</td>
+<td>-</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>start_date</td>
+<td>TEXT</td>
+<td>-</td>
+<td>开始日期</td>
+</tr>
+<tr>
+<td>end_date</td>
+<td>TEXT</td>
+<td>-</td>
+<td>结束日期</td>
+</tr>
+<tr>
+<td>is_ongoing</td>
+<td>INTEGER</td>
+<td>DEFAULT 0</td>
+<td>是否进行中</td>
+</tr>
+<tr>
+<td>technologies</td>
+<td>TEXT</td>
+<td>-</td>
+<td>技术栈</td>
+</tr>
+<tr>
+<td>achievements</td>
+<td>TEXT</td>
+<td>-</td>
+<td>成果</td>
+</tr>
+<tr>
+<td>supervisor</td>
+<td>TEXT</td>
+<td>-</td>
+<td>导师</td>
+</tr>
+<tr>
+<td>contact</td>
+<td>TEXT</td>
+<td>-</td>
+<td>联系方式</td>
+</tr>
+<tr>
+<td>location</td>
+<td>TEXT</td>
+<td>-</td>
+<td>地点</td>
+</tr>
+<tr>
+<td>url</td>
+<td>TEXT</td>
+<td>-</td>
+<td>链接</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>更新时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>索引</strong>：type, is_ongoing</p>
+<h4 id="活动表-activities">4.2.5 活动表 (activities)</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PRIMARY KEY</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>name</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+<td>活动名称</td>
+</tr>
+<tr>
+<td>description</td>
+<td>TEXT</td>
+<td>-</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>category</td>
+<td>TEXT</td>
+<td>-</td>
+<td>类别</td>
+</tr>
+<tr>
+<td>start_date</td>
+<td>TEXT</td>
+<td>-</td>
+<td>开始日期</td>
+</tr>
+<tr>
+<td>end_date</td>
+<td>TEXT</td>
+<td>-</td>
+<td>结束日期</td>
+</tr>
+<tr>
+<td>is_favorite</td>
+<td>INTEGER</td>
+<td>DEFAULT 0</td>
+<td>是否收藏</td>
+</tr>
+<tr>
+<td>is_active</td>
+<td>INTEGER</td>
+<td>DEFAULT 1</td>
+<td>是否活跃</td>
+</tr>
+<tr>
+<td>tags</td>
+<td>TEXT</td>
+<td>-</td>
+<td>标签</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>更新时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>索引</strong>：start_date</p>
+<h4 id="目标表-goals">4.2.6 目标表 (goals)</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PRIMARY KEY</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>title</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+<td>目标标题</td>
+</tr>
+<tr>
+<td>category</td>
+<td>TEXT</td>
+<td>-</td>
+<td>类别</td>
+</tr>
+<tr>
+<td>description</td>
+<td>TEXT</td>
+<td>-</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>target_value</td>
+<td>REAL</td>
+<td>DEFAULT 0</td>
+<td>目标值</td>
+</tr>
+<tr>
+<td>current_value</td>
+<td>REAL</td>
+<td>DEFAULT 0</td>
+<td>当前进度</td>
+</tr>
+<tr>
+<td>unit</td>
+<td>TEXT</td>
+<td>-</td>
+<td>单位</td>
+</tr>
+<tr>
+<td>deadline</td>
+<td>TEXT</td>
+<td>-</td>
+<td>截止日期</td>
+</tr>
+<tr>
+<td>priority</td>
+<td>TEXT</td>
+<td>DEFAULT ‘Medium’</td>
+<td>优先级</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TEXT</td>
+<td>DEFAULT ‘In Progress’</td>
+<td>状态</td>
+</tr>
+<tr>
+<td>milestones</td>
+<td>TEXT</td>
+<td>-</td>
+<td>关键节点(JSON格式)</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>更新时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>索引</strong>：category, status, priority</p>
+<h4 id="岗位表-target_jobs">4.2.7 岗位表 (target_jobs)</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PRIMARY KEY</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>title</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+<td>岗位标题</td>
+</tr>
+<tr>
+<td>company</td>
+<td>TEXT</td>
+<td>-</td>
+<td>公司</td>
+</tr>
+<tr>
+<td>location</td>
+<td>TEXT</td>
+<td>-</td>
+<td>地点</td>
+</tr>
+<tr>
+<td>salary_range</td>
+<td>TEXT</td>
+<td>-</td>
+<td>薪资范围</td>
+</tr>
+<tr>
+<td>description</td>
+<td>TEXT</td>
+<td>-</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>requirements</td>
+<td>TEXT</td>
+<td>-</td>
+<td>需求列表(JSON格式)</td>
+</tr>
+<tr>
+<td>is_active</td>
+<td>INTEGER</td>
+<td>DEFAULT 1</td>
+<td>是否活跃</td>
+</tr>
+<tr>
+<td>priority</td>
+<td>INTEGER</td>
+<td>DEFAULT 0</td>
+<td>优先级</td>
+</tr>
+<tr>
+<td>source</td>
+<td>TEXT</td>
+<td>-</td>
+<td>来源</td>
+</tr>
+<tr>
+<td>url</td>
+<td>TEXT</td>
+<td>-</td>
+<td>链接</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TEXT</td>
+<td>-</td>
+<td>状态</td>
+</tr>
+<tr>
+<td>applied_date</td>
+<td>TEXT</td>
+<td>-</td>
+<td>投递日期</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>更新时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>索引</strong>：无</p>
+<p><strong>说明</strong>：岗位需求以JSON数组格式存储在
+<code>requirements</code> 字段中，每个需求包含 <code>text</code> 和
+<code>met</code> 两个属性，无需独立的关联表。</p>
+<h4 id="用户表-users">4.2.8 用户表 (users)</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PRIMARY KEY</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>username</td>
+<td>TEXT</td>
+<td>NOT NULL, UNIQUE</td>
+<td>用户名</td>
+</tr>
+<tr>
+<td>password</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+<td>密码（SHA256加密）</td>
+</tr>
+<tr>
+<td>email</td>
+<td>TEXT</td>
+<td>UNIQUE</td>
+<td>邮箱</td>
+</tr>
+<tr>
+<td>display_name</td>
+<td>TEXT</td>
+<td>-</td>
+<td>显示名称</td>
+</tr>
+<tr>
+<td>role</td>
+<td>TEXT</td>
+<td>DEFAULT ‘user’</td>
+<td>角色</td>
+</tr>
+<tr>
+<td>is_active</td>
+<td>INTEGER</td>
+<td>DEFAULT 1</td>
+<td>是否激活</td>
+</tr>
+<tr>
+<td>last_login_at</td>
+<td>TEXT</td>
+<td>-</td>
+<td>最后登录</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>创建时间</td>
+</tr>
+<tr>
+<td>updated_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>更新时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>索引</strong>：username(UNIQUE), email(UNIQUE)</p>
+<h4 id="同学对比表-peer_benchmarks">4.2.9 同学对比表
+(peer_benchmarks)</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>INTEGER</td>
+<td>PRIMARY KEY</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>name</td>
+<td>TEXT</td>
+<td>NOT NULL</td>
+<td>姓名</td>
+</tr>
+<tr>
+<td>major</td>
+<td>TEXT</td>
+<td>-</td>
+<td>专业</td>
+</tr>
+<tr>
+<td>semester</td>
+<td>TEXT</td>
+<td>-</td>
+<td>学期</td>
+</tr>
+<tr>
+<td>gpa</td>
+<td>REAL</td>
+<td>DEFAULT 0</td>
+<td>GPA</td>
+</tr>
+<tr>
+<td>credits</td>
+<td>REAL</td>
+<td>DEFAULT 0</td>
+<td>学分</td>
+</tr>
+<tr>
+<td>achievements_count</td>
+<td>INTEGER</td>
+<td>DEFAULT 0</td>
+<td>成果数</td>
+</tr>
+<tr>
+<td>experiences_count</td>
+<td>INTEGER</td>
+<td>DEFAULT 0</td>
+<td>经历数</td>
+</tr>
+<tr>
+<td>note</td>
+<td>TEXT</td>
+<td>-</td>
+<td>备注</td>
+</tr>
+<tr>
+<td>created_at</td>
+<td>DATETIME</td>
+<td>DEFAULT CURRENT_TIMESTAMP</td>
+<td>创建时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>索引</strong>：semester</p>
+<h3 id="er图">4.3 ER图</h3>
+<pre><code>┌──────────┐       ┌──────────┐
+│  users   │       │ courses  │
+└──────────┘       └──────────┘
+
+┌──────────┐       ┌──────────┐
+│  roles   │       │achievements│
+└──────────┘       └──────────┘
+
+┌──────────┐       ┌──────────┐
+│experiences│      │activities│
+└──────────┘       └──────────┘
+
+┌──────────┐       ┌──────────────────┐
+│  goals   │       │   target_jobs    │
+└──────────┘       │ (requirements字段 │
+                   │  存储JSON格式需求) │
+                   └──────────────────┘
+
+┌──────────────┐
+│peer_benchmarks│
+└──────────────┘</code></pre>
+<hr />
+<h2 id="五接口设计">五、接口设计</h2>
+<h3 id="restful-api设计">5.1 RESTful API设计</h3>
+<h4 id="api端点列表">5.1.1 API端点列表</h4>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>端点</th>
+<th>方法</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>课程</strong></td>
+<td>/api/courses</td>
+<td>GET</td>
+<td>获取所有课程</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/courses</td>
+<td>POST</td>
+<td>创建课程</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/courses/:id</td>
+<td>GET</td>
+<td>获取单个课程</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/courses/:id</td>
+<td>PUT</td>
+<td>更新课程</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/courses/:id</td>
+<td>DELETE</td>
+<td>删除课程</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/courses/statistics</td>
+<td>GET</td>
+<td>获取统计数据</td>
+</tr>
+<tr>
+<td><strong>角色</strong></td>
+<td>/api/roles</td>
+<td>GET/POST</td>
+<td>获取/创建角色</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/roles/:id</td>
+<td>GET/PUT/DELETE</td>
+<td>操作单个角色</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/roles/statistics</td>
+<td>GET</td>
+<td>获取统计数据</td>
+</tr>
+<tr>
+<td><strong>成果</strong></td>
+<td>/api/achievements</td>
+<td>GET/POST</td>
+<td>获取/创建成果</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/achievements/:id</td>
+<td>GET/PUT/DELETE</td>
+<td>操作单个成果</td>
+</tr>
+<tr>
+<td><strong>经历</strong></td>
+<td>/api/experiences</td>
+<td>GET/POST</td>
+<td>获取/创建经历</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/experiences/:id</td>
+<td>GET/PUT/DELETE</td>
+<td>操作单个经历</td>
+</tr>
+<tr>
+<td><strong>活动</strong></td>
+<td>/api/activities</td>
+<td>GET/POST</td>
+<td>获取/创建活动</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/activities/:id</td>
+<td>GET/PUT/DELETE</td>
+<td>操作单个活动</td>
+</tr>
+<tr>
+<td><strong>目标</strong></td>
+<td>/api/goals</td>
+<td>GET/POST</td>
+<td>获取/创建目标</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/goals/:id</td>
+<td>GET/PUT/DELETE</td>
+<td>操作单个目标</td>
+</tr>
+<tr>
+<td><strong>岗位</strong></td>
+<td>/api/jobs</td>
+<td>GET/POST</td>
+<td>获取/创建岗位</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/jobs/:id</td>
+<td>GET/PUT/DELETE</td>
+<td>操作单个岗位</td>
+</tr>
+<tr>
+<td><strong>用户</strong></td>
+<td>/api/auth/register</td>
+<td>POST</td>
+<td>用户注册</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/auth/login</td>
+<td>POST</td>
+<td>用户登录</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/auth/me</td>
+<td>GET</td>
+<td>获取当前用户</td>
+</tr>
+<tr>
+<td><strong>分析</strong></td>
+<td>/api/analytics/dashboard</td>
+<td>GET</td>
+<td>仪表盘数据</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/analytics/gpa-trend</td>
+<td>GET</td>
+<td>GPA趋势</td>
+</tr>
+<tr>
+<td><strong>简历</strong></td>
+<td>/api/resume</td>
+<td>GET</td>
+<td>获取简历数据</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/resume/export</td>
+<td>POST</td>
+<td>导出简历</td>
+</tr>
+<tr>
+<td><strong>AI</strong></td>
+<td>/api/ai/chat</td>
+<td>POST</td>
+<td>AI对话</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/ai/analyze</td>
+<td>POST</td>
+<td>AI分析</td>
+</tr>
+<tr>
+<td><strong>导入</strong></td>
+<td>/api/import/courses</td>
+<td>POST</td>
+<td>导入课程</td>
+</tr>
+<tr>
+<td></td>
+<td>/api/import/goals</td>
+<td>POST</td>
+<td>导入目标</td>
+</tr>
+</tbody>
+</table>
+<h4 id="统一响应格式">5.1.2 统一响应格式</h4>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="er">...</span> <span class="fu">},</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;操作成功&quot;</span><span class="fu">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="kw">null</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 id="核心时序图">5.2 核心时序图</h3>
+<h4 id="用户登录流程">5.2.1 用户登录流程</h4>
+<pre><code>用户 → LoginDialog: 输入用户名密码
+LoginDialog → AuthService: login(username, password)
+AuthService → UserDao: findByUsername(username)
+UserDao → SQLite: SELECT * FROM users WHERE username=?
+SQLite → UserDao: 用户记录
+UserDao → AuthService: User对象
+AuthService → AuthService: verifyPassword(password, hash)
+AuthService → AuthService: generateToken(userId, username, role)
+AuthService → LoginDialog: {token, user}
+LoginDialog → MainWindow: 切换到主页面</code></pre>
+<h4 id="添加课程流程">5.2.2 添加课程流程</h4>
+<pre><code>用户 → CoursesPage: 点击&quot;添加课程&quot;
+CoursesPage → CourseEditorDialog: 打开编辑对话框
+用户 → CourseEditorDialog: 填写课程信息
+CourseEditorDialog → CourseService: create(course)
+CourseService → CourseDao: insert(course)
+CourseDao → SQLite: INSERT INTO courses ...
+SQLite → CourseDao: 新记录ID
+CourseDao → CourseService: Course对象
+CourseService → CourseEditorDialog: {success: true}
+CourseEditorDialog → CoursesPage: 关闭对话框
+CoursesPage → DataRefreshCoordinator: emit dataChanged(Courses)
+DataRefreshCoordinator → OverviewPage: refresh()
+DataRefreshCoordinator → AnalysisPage: refresh()</code></pre>
+<h4 id="生成简历流程">5.2.3 生成简历流程</h4>
+<pre><code>用户 → ResumePage: 点击&quot;生成简历&quot;
+ResumePage → ResumeService: generateResume(userId)
+ResumeService → CourseDao: getCoursesByUser(userId)
+ResumeService → ExperienceDao: getExperiencesByUser(userId)
+ResumeService → AchievementDao: getAchievementsByUser(userId)
+ResumeService → ResumeService: 组装简历数据
+ResumeService → ResumePage: ResumeData对象
+ResumePage → ResumePage: 渲染预览
+用户 → ResumePage: 点击&quot;导出&quot;
+ResumePage → ResumeService: export(format)
+ResumeService → ResumeService: 生成JSON/HTML
+ResumeService → ResumePage: 下载链接</code></pre>
+<hr />
+<h2 id="六核心功能状态设计">六、核心功能状态设计</h2>
+<p>系统围绕“课程学习、目标规划、简历生成、AI建议”四类核心功能设计状态流转，便于说明对象生命周期和界面交互逻辑。</p>
+<h3 id="课程状态">6.1 课程状态</h3>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Planned: 新增课程
+    Planned --&gt; InProgress: 开始学习
+    InProgress --&gt; Completed: 录入成绩
+    Completed --&gt; Archived: 归档展示</code></pre>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>含义</th>
+<th>触发条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Planned</td>
+<td>计划学习</td>
+<td>新增课程但尚未开始</td>
+</tr>
+<tr>
+<td>In Progress</td>
+<td>学习中</td>
+<td>用户标记课程正在进行</td>
+</tr>
+<tr>
+<td>Completed</td>
+<td>已完成</td>
+<td>录入成绩并计算绩点</td>
+</tr>
+<tr>
+<td>Archived</td>
+<td>已归档</td>
+<td>用于简历、时间轴和分析模块引用</td>
+</tr>
+</tbody>
+</table>
+<h3 id="目标状态">6.2 目标状态</h3>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Pending: 创建目标
+    Pending --&gt; InProgress: 开始执行
+    InProgress --&gt; Completed: 达成目标
+    InProgress --&gt; Paused: 暂停
+    Paused --&gt; InProgress: 恢复
+    InProgress --&gt; Cancelled: 放弃或调整</code></pre>
+<p>目标状态用于支持进度追踪、阶段提醒和分析报告生成。</p>
+<h3 id="简历生成状态">6.3 简历生成状态</h3>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Editing: 编辑配置
+    Editing --&gt; Previewing: 预览简历
+    Previewing --&gt; Exported: 导出文件
+    Previewing --&gt; Editing: 返回修改</code></pre>
+<p>简历模块以编辑配置为单一数据源，预览和导出均基于当前配置生成，避免预览内容与导出内容不一致。
+## 七、类设计</p>
+<h3 id="核心类图">7.1 核心类图</h3>
+<pre><code>┌─────────────────┐         ┌─────────────────┐
+│   MainWindow    │◄────────│ AppShellController│
+└─────────────────┘         └─────────────────┘
+         │
+         │ 包含
+         ▼
+┌─────────────────┐
+│    BasePage     │◄────────┬────────┬────────┐
+└─────────────────┘         │        │        │
+         ▲                  │        │        │
+         │                  │        │        │
+    ┌────┴────┐      ┌─────┴───┐ ┌──┴───┐ ┌──┴────┐
+    │CoursesPage│      │GoalsPage│ │RolesPage│ │ResumePage│
+    └─────────┘      └─────────┘ └──────┘ └───────┘
+         │                  │        │        │
+         │ 调用              │        │        │
+         ▼                  ▼        ▼        ▼
+┌─────────────────────────────────────────────────┐
+│              Service Layer                        │
+│  ┌───────────┐ ┌───────────┐ ┌───────────────┐ │
+│  │CourseService│ │GoalService│ │ ResumeService │ │
+│  └───────────┘ └───────────┘ └───────────────┘ │
+└─────────────────────────────────────────────────┘
+         │                  │              │
+         ▼                  ▼              ▼
+┌─────────────────────────────────────────────────┐
+│                DAO Layer                          │
+│  ┌───────────┐ ┌───────────┐ ┌───────────────┐ │
+│  │ CourseDao │ │  GoalDao  │ │  ResumeDao    │ │
+│  └───────────┘ └───────────┘ └───────────────┘ │
+└─────────────────────────────────────────────────┘
+         │                  │              │
+         ▼                  ▼              ▼
+┌─────────────────────────────────────────────────┐
+│              SQLite Database                      │
+└─────────────────────────────────────────────────┘</code></pre>
+<h3 id="关键类定义">7.2 关键类定义</h3>
+<h4 id="course模型">7.2.1 Course模型</h4>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Course <span class="op">{</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> id <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> name<span class="op">;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> code<span class="op">;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">double</span> credits <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> semester<span class="op">;</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> category <span class="op">=</span> <span class="st">&quot;Required&quot;</span><span class="op">;</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">double</span> score <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">double</span> gradePoint <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> status <span class="op">=</span> <span class="st">&quot;Planned&quot;</span><span class="op">;</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> teacher<span class="op">;</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> location<span class="op">;</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> description<span class="op">;</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> tags<span class="op">;</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QDateTime</span> createdAt<span class="op">;</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QDateTime</span> updatedAt<span class="op">;</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> <span class="dt">double</span> calculateGradePoint<span class="op">(</span><span class="dt">double</span> score<span class="op">,</span> <span class="at">const</span> <span class="ex">QString</span><span class="op">&amp;</span> scale <span class="op">=</span> <span class="st">&quot;standard&quot;</span><span class="op">);</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QJsonObject</span> toDict<span class="op">()</span> <span class="at">const</span><span class="op">;</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> Course fromDict<span class="op">(</span><span class="at">const</span> <span class="ex">QJsonObject</span><span class="op">&amp;</span> obj<span class="op">);</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<h4 id="user模型">7.2.2 User模型</h4>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> User <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> id <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> username<span class="op">;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> password<span class="op">;</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> email<span class="op">;</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> displayName<span class="op">;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> role <span class="op">=</span> <span class="st">&quot;user&quot;</span><span class="op">;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> isActive <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> lastLoginAt<span class="op">;</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QDateTime</span> createdAt<span class="op">;</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QDateTime</span> updatedAt<span class="op">;</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QJsonObject</span> toDict<span class="op">()</span> <span class="at">const</span><span class="op">;</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> User fromDict<span class="op">(</span><span class="at">const</span> <span class="ex">QJsonObject</span><span class="op">&amp;</span> obj<span class="op">);</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<h4 id="daobase模板">7.2.3 DaoBase模板</h4>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DaoBase <span class="op">{</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">virtual</span> <span class="dt">bool</span> insert<span class="op">(</span>T<span class="op">&amp;</span> entity<span class="op">)</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">virtual</span> <span class="dt">bool</span> update<span class="op">(</span><span class="at">const</span> T<span class="op">&amp;</span> entity<span class="op">)</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">virtual</span> <span class="dt">bool</span> remove<span class="op">(</span><span class="dt">int</span> id<span class="op">)</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">virtual</span> T getById<span class="op">(</span><span class="dt">int</span> id<span class="op">)</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">virtual</span> <span class="ex">QList</span><span class="op">&lt;</span>T<span class="op">&gt;</span> getAll<span class="op">()</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<hr />
+<h2 id="八关键技术实现">八、关键技术实现</h2>
+<h3 id="gpa计算算法">8.1 GPA计算算法</h3>
+<p>系统支持三种GPA计算标准：</p>
+<table>
+<thead>
+<tr>
+<th>标准</th>
+<th>说明</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>standard</td>
+<td>4.0制标准算法</td>
+<td>国内高校通用</td>
+</tr>
+<tr>
+<td>4.3</td>
+<td>4.3制算法</td>
+<td>部分高校使用</td>
+</tr>
+<tr>
+<td>5.0</td>
+<td>5.0制算法</td>
+<td>部分高校使用</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="at">static</span> <span class="at">const</span> <span class="ex">QMap</span><span class="op">&lt;</span><span class="ex">QString</span><span class="op">,</span> <span class="ex">QMap</span><span class="op">&lt;</span><span class="ex">QPair</span><span class="op">&lt;</span><span class="dt">int</span><span class="op">,</span><span class="dt">int</span><span class="op">&gt;,</span><span class="dt">double</span><span class="op">&gt;&gt;</span> SCALE_TABLES <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span><span class="st">&quot;standard&quot;</span><span class="op">,</span> <span class="op">{{{</span><span class="dv">90</span><span class="op">,</span><span class="dv">100</span><span class="op">},</span><span class="fl">4.0</span><span class="op">},{{</span><span class="dv">85</span><span class="op">,</span><span class="dv">89</span><span class="op">},</span><span class="fl">3.7</span><span class="op">},{{</span><span class="dv">82</span><span class="op">,</span><span class="dv">84</span><span class="op">},</span><span class="fl">3.3</span><span class="op">},{{</span><span class="dv">78</span><span class="op">,</span><span class="dv">81</span><span class="op">},</span><span class="fl">3.0</span><span class="op">},{{</span><span class="dv">75</span><span class="op">,</span><span class="dv">77</span><span class="op">},</span><span class="fl">2.7</span><span class="op">},{{</span><span class="dv">72</span><span class="op">,</span><span class="dv">74</span><span class="op">},</span><span class="fl">2.3</span><span class="op">},{{</span><span class="dv">68</span><span class="op">,</span><span class="dv">71</span><span class="op">},</span><span class="fl">2.0</span><span class="op">},{{</span><span class="dv">64</span><span class="op">,</span><span class="dv">67</span><span class="op">},</span><span class="fl">1.5</span><span class="op">},{{</span><span class="dv">60</span><span class="op">,</span><span class="dv">63</span><span class="op">},</span><span class="fl">1.0</span><span class="op">},{{</span><span class="dv">0</span><span class="op">,</span><span class="dv">59</span><span class="op">},</span><span class="fl">0.0</span><span class="op">}}},</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span><span class="st">&quot;4.3&quot;</span><span class="op">,</span> <span class="op">{{{</span><span class="dv">95</span><span class="op">,</span><span class="dv">100</span><span class="op">},</span><span class="fl">4.3</span><span class="op">},{{</span><span class="dv">90</span><span class="op">,</span><span class="dv">94</span><span class="op">},</span><span class="fl">4.0</span><span class="op">},{{</span><span class="dv">85</span><span class="op">,</span><span class="dv">89</span><span class="op">},</span><span class="fl">3.7</span><span class="op">},{{</span><span class="dv">82</span><span class="op">,</span><span class="dv">84</span><span class="op">},</span><span class="fl">3.3</span><span class="op">},{{</span><span class="dv">78</span><span class="op">,</span><span class="dv">81</span><span class="op">},</span><span class="fl">3.0</span><span class="op">},{{</span><span class="dv">75</span><span class="op">,</span><span class="dv">77</span><span class="op">},</span><span class="fl">2.7</span><span class="op">},{{</span><span class="dv">72</span><span class="op">,</span><span class="dv">74</span><span class="op">},</span><span class="fl">2.3</span><span class="op">},{{</span><span class="dv">68</span><span class="op">,</span><span class="dv">71</span><span class="op">},</span><span class="fl">2.0</span><span class="op">},{{</span><span class="dv">64</span><span class="op">,</span><span class="dv">67</span><span class="op">},</span><span class="fl">1.5</span><span class="op">},{{</span><span class="dv">60</span><span class="op">,</span><span class="dv">63</span><span class="op">},</span><span class="fl">1.0</span><span class="op">},{{</span><span class="dv">0</span><span class="op">,</span><span class="dv">59</span><span class="op">},</span><span class="fl">0.0</span><span class="op">}}},</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">{</span><span class="st">&quot;5.0&quot;</span><span class="op">,</span> <span class="op">{{{</span><span class="dv">90</span><span class="op">,</span><span class="dv">100</span><span class="op">},</span><span class="fl">5.0</span><span class="op">},{{</span><span class="dv">85</span><span class="op">,</span><span class="dv">89</span><span class="op">},</span><span class="fl">4.5</span><span class="op">},{{</span><span class="dv">82</span><span class="op">,</span><span class="dv">84</span><span class="op">},</span><span class="fl">4.0</span><span class="op">},{{</span><span class="dv">78</span><span class="op">,</span><span class="dv">81</span><span class="op">},</span><span class="fl">3.5</span><span class="op">},{{</span><span class="dv">75</span><span class="op">,</span><span class="dv">77</span><span class="op">},</span><span class="fl">3.0</span><span class="op">},{{</span><span class="dv">72</span><span class="op">,</span><span class="dv">74</span><span class="op">},</span><span class="fl">2.5</span><span class="op">},{{</span><span class="dv">68</span><span class="op">,</span><span class="dv">71</span><span class="op">},</span><span class="fl">2.0</span><span class="op">},{{</span><span class="dv">64</span><span class="op">,</span><span class="dv">67</span><span class="op">},</span><span class="fl">1.5</span><span class="op">},{{</span><span class="dv">60</span><span class="op">,</span><span class="dv">63</span><span class="op">},</span><span class="fl">1.0</span><span class="op">},{{</span><span class="dv">0</span><span class="op">,</span><span class="dv">59</span><span class="op">},</span><span class="fl">0.0</span><span class="op">}}},</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="dt">double</span> Course<span class="op">::</span>calculateGradePoint<span class="op">(</span><span class="dt">double</span> score<span class="op">,</span> <span class="at">const</span> <span class="ex">QString</span><span class="op">&amp;</span> scale<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> s <span class="op">=</span> scale<span class="op">.</span>trimmed<span class="op">().</span>toLower<span class="op">();</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>s<span class="op">.</span>isEmpty<span class="op">())</span> s <span class="op">=</span> <span class="st">&quot;standard&quot;</span><span class="op">;</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span>SCALE_TABLES<span class="op">.</span>contains<span class="op">(</span>s<span class="op">))</span> s <span class="op">=</span> <span class="st">&quot;standard&quot;</span><span class="op">;</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">const</span> <span class="kw">auto</span><span class="op">&amp;</span> table <span class="op">=</span> SCALE_TABLES<span class="op">[</span>s<span class="op">];</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span><span class="kw">auto</span> it <span class="op">=</span> table<span class="op">.</span>begin<span class="op">();</span> it <span class="op">!=</span> table<span class="op">.</span>end<span class="op">();</span> <span class="op">++</span>it<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>score <span class="op">&gt;=</span> it<span class="op">.</span>key<span class="op">().</span>first <span class="op">&amp;&amp;</span> score <span class="op">&lt;=</span> it<span class="op">.</span>key<span class="op">().</span>second<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> it<span class="op">.</span>value<span class="op">();</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fl">0.0</span><span class="op">;</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="token认证机制">8.2 Token认证机制</h3>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">QString</span> AuthService<span class="op">::</span>generateToken<span class="op">(</span><span class="dt">int</span> userId<span class="op">,</span> <span class="at">const</span> <span class="ex">QString</span><span class="op">&amp;</span> username<span class="op">,</span> <span class="at">const</span> <span class="ex">QString</span><span class="op">&amp;</span> role<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QString</span> data <span class="op">=</span> <span class="ex">QString</span><span class="op">(</span><span class="st">&quot;%1:%2:%3:%4&quot;</span><span class="op">)</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>arg<span class="op">(</span>userId<span class="op">).</span>arg<span class="op">(</span>username<span class="op">).</span>arg<span class="op">(</span>role<span class="op">)</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>arg<span class="op">(</span><span class="ex">QDateTime::currentSecsSinceEpoch</span><span class="op">()</span> <span class="op">+</span> <span class="dv">72</span> <span class="op">*</span> <span class="dv">3600</span><span class="op">);</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">QByteArray</span> hash <span class="op">=</span> <span class="ex">QCryptographicHash::hash</span><span class="op">(</span>data<span class="op">.</span>toUtf8<span class="op">(),</span> <span class="ex">QCryptographicHash::Sha256</span><span class="op">);</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="ex">QString</span><span class="op">(</span><span class="st">&quot;%1.%2.%3&quot;</span><span class="op">)</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>arg<span class="op">(</span><span class="ex">QString</span><span class="op">(</span><span class="ex">QByteArray::number</span><span class="op">(</span>userId<span class="op">).</span>toBase64<span class="op">()))</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>arg<span class="op">(</span><span class="ex">QString</span><span class="op">(</span>username<span class="op">.</span>toUtf8<span class="op">().</span>toBase64<span class="op">()))</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>arg<span class="op">(</span><span class="ex">QString</span><span class="op">(</span>hash<span class="op">.</span>toBase64<span class="op">()));</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="统一json响应">8.3 统一JSON响应</h3>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> JsonUtils <span class="op">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> <span class="ex">QJsonObject</span> success<span class="op">(</span><span class="at">const</span> <span class="ex">QJsonValue</span><span class="op">&amp;</span> data<span class="op">,</span> <span class="at">const</span> <span class="ex">QString</span><span class="op">&amp;</span> message <span class="op">=</span> <span class="st">&quot;Success&quot;</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ex">QJsonObject</span><span class="op">{{</span><span class="st">&quot;success&quot;</span><span class="op">,</span> <span class="kw">true</span><span class="op">},</span> <span class="op">{</span><span class="st">&quot;data&quot;</span><span class="op">,</span> data<span class="op">},</span> <span class="op">{</span><span class="st">&quot;message&quot;</span><span class="op">,</span> message<span class="op">},</span> <span class="op">{</span><span class="st">&quot;error&quot;</span><span class="op">,</span> <span class="ex">QJsonValue</span><span class="op">()}};</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> <span class="ex">QJsonObject</span> error<span class="op">(</span><span class="at">const</span> <span class="ex">QString</span><span class="op">&amp;</span> message<span class="op">,</span> <span class="dt">int</span> code <span class="op">=</span> <span class="dv">400</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ex">QJsonObject</span><span class="op">{{</span><span class="st">&quot;success&quot;</span><span class="op">,</span> <span class="kw">false</span><span class="op">},</span> <span class="op">{</span><span class="st">&quot;data&quot;</span><span class="op">,</span> <span class="ex">QJsonValue</span><span class="op">()},</span> <span class="op">{</span><span class="st">&quot;message&quot;</span><span class="op">,</span> message<span class="op">},</span> <span class="op">{</span><span class="st">&quot;error&quot;</span><span class="op">,</span> code<span class="op">}};</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<hr />
+<h2 id="九设计模式应用">九、设计模式应用</h2>
+<h3 id="已应用的设计模式">9.1 已应用的设计模式</h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>应用场景</th>
+<th>实现位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>分层架构模式</strong></td>
+<td>六层分层架构</td>
+<td>整个项目</td>
+</tr>
+<tr>
+<td><strong>观察者模式</strong></td>
+<td>数据变化通知页面刷新</td>
+<td>DataRefreshCoordinator</td>
+</tr>
+<tr>
+<td><strong>中介者模式</strong></td>
+<td>AI上下文传递</td>
+<td>AiContextMediator</td>
+</tr>
+<tr>
+<td><strong>模板方法模式</strong></td>
+<td>DAO基类定义CRUD模板</td>
+<td>DaoBase</td>
+</tr>
+<tr>
+<td><strong>单例模式</strong></td>
+<td>服务层全局访问</td>
+<td>Service classes</td>
+</tr>
+<tr>
+<td><strong>工厂模式</strong></td>
+<td>模型对象从JSON创建</td>
+<td>Model::fromDict</td>
+</tr>
+</tbody>
+</table>
+<h3 id="计划应用的设计模式">9.2 计划应用的设计模式</h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>应用场景</th>
+<th>计划实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>策略模式</strong></td>
+<td>GPA计算支持多种算法</td>
+<td>Course::calculateGradePoint</td>
+</tr>
+<tr>
+<td><strong>装饰器模式</strong></td>
+<td>简历导出支持多种格式</td>
+<td>ResumeService</td>
+</tr>
+<tr>
+<td><strong>代理模式</strong></td>
+<td>API请求统一处理</td>
+<td>ApiClient</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="十项目分工">十、项目分工</h2>
+<h3 id="详细设计分工">10.1 详细设计分工</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>成员</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>组长</strong></td>
+<td>架构设计、核心协调器、MainWindow、Qt UI页面与交互、进度管理</td>
+</tr>
+<tr>
+<td><strong>组员A</strong></td>
+<td>API层开发、路由设计、JsonUtils、单元测试</td>
+</tr>
+<tr>
+<td><strong>组员B</strong></td>
+<td>Model、DAO、Service层开发、业务逻辑实现</td>
+</tr>
+<tr>
+<td><strong>组员C</strong></td>
+<td>测试用例编写、技术文档撰写、日志系统</td>
+</tr>
+</tbody>
+</table>
+<h3 id="任务分配明细">10.2 任务分配明细</h3>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>负责人</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>整体架构设计</td>
+<td>组长</td>
+<td>✅ 完成</td>
+</tr>
+<tr>
+<td>MainWindow实现</td>
+<td>组长</td>
+<td>✅ 完成</td>
+</tr>
+<tr>
+<td>核心协调器开发</td>
+<td>组长</td>
+<td>✅ 完成</td>
+</tr>
+<tr>
+<td>HTTP服务器配置</td>
+<td>组员A</td>
+<td>✅ 完成</td>
+</tr>
+<tr>
+<td>API层开发</td>
+<td>组员A</td>
+<td>✅ 完成</td>
+</tr>
+<tr>
+<td>JsonUtils实现</td>
+<td>组员A</td>
+<td>✅ 完成</td>
+</tr>
+<tr>
+<td>Model层设计</td>
+<td>组员B</td>
+<td>✅ 完成</td>
+</tr>
+<tr>
+<td>DAO层实现</td>
+<td>组员B</td>
+<td>✅ 完成</td>
+</tr>
+<tr>
+<td>Service层设计与核心实现</td>
+<td>组员B</td>
+<td>⚠️ 核心完成，后续完善高级业务规则</td>
+</tr>
+<tr>
+<td>Qt UI页面与交互开发</td>
+<td>组长</td>
+<td>⚠️ 进行中</td>
+</tr>
+<tr>
+<td>测试用例编写</td>
+<td>组员C</td>
+<td>⏳ 待开始</td>
+</tr>
+<tr>
+<td>技术文档撰写</td>
+<td>组员C</td>
+<td>⚠️ 初稿完成，后续随实现继续更新</td>
+</tr>
+<tr>
+<td>日志系统开发</td>
+<td>组员C</td>
+<td>⚠️ 基础方案完成，后续完善运行日志与错误追踪</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="十一时间规划与甘特图">十一、时间规划与甘特图</h2>
+<h3 id="阶段计划表">11.1 阶段计划表</h3>
+<p>期中阶段的重点是完成需求分析、架构设计、数据模型设计和核心原型验证；期中之后再进入完整功能实现、测试、文档和演示准备。这样安排可以避免一开始就过早投入界面细节，同时保证体系结构设计先行。</p>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 25%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>阶段</th>
+<th>时间安排</th>
+<th>阶段目标</th>
+<th>主要负责人</th>
+<th>当前状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>需求分析与范围确认</td>
+<td>第1周</td>
+<td>明确个人发展规划系统的核心用户场景、功能边界和创新点</td>
+<td>全体</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>架构设计与技术选型</td>
+<td>第2周</td>
+<td>确定 Qt/C++ 技术路线、分层架构、核心模块和数据流</td>
+<td>组长</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>数据模型与接口设计</td>
+<td>第3周</td>
+<td>完成课程、目标、成果、经历、简历等核心实体设计，规划本地 HTTP
+API</td>
+<td>组员A、组员B</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>核心原型实现</td>
+<td>第4周</td>
+<td>搭建主窗口、导航框架、数据库初始化、基础 CRUD 原型</td>
+<td>组长、组员B</td>
+<td>进行中</td>
+</tr>
+<tr>
+<td>期中报告整理</td>
+<td>第5周</td>
+<td>完成需求、架构、用例、静态设计、时序图、状态图、分工和计划说明</td>
+<td>组长、组员C</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>功能完善与界面优化</td>
+<td>第6-7周</td>
+<td>完成主要业务页面、编辑弹窗、简历原型和数据分析页面</td>
+<td>组长、组员B</td>
+<td>计划中</td>
+</tr>
+<tr>
+<td>高级功能与联调</td>
+<td>第8周</td>
+<td>完善 AI 助手、数据导入、简历导出和跨模块联动</td>
+<td>全体</td>
+<td>计划中</td>
+</tr>
+<tr>
+<td>测试、文档与演示准备</td>
+<td>第9-10周</td>
+<td>完成回归测试、运行说明、提交包整理和演示材料</td>
+<td>组员C、组长</td>
+<td>计划中</td>
+</tr>
+</tbody>
+</table>
+<h3 id="甘特图">11.2 甘特图</h3>
+<pre><code>时间轴: 第1周  第2周  第3周  第4周  第5周  第6周  第7周  第8周  第9周  第10周
+
+需求分析与范围确认      ████
+架构设计与技术选型             ████
+数据模型与接口设计                    ████
+核心原型实现                               ████
+期中报告整理                                      ████
+功能完善与界面优化                                  ████████
+高级功能与联调                                              ████
+测试、文档与演示准备                                               ████████</code></pre>
+<hr />
+<h2 id="十二期中完成度总结">十二、期中完成度总结</h2>
+<h3 id="阶段性完成情况">12.1 阶段性完成情况</h3>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 38%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr>
+<th>类别</th>
+<th>当前成果</th>
+<th>阶段判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>需求分析</td>
+<td>已完成项目主题、目标用户、核心功能和非功能需求整理</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>架构设计</td>
+<td>已确定 Qt/C++ 原生桌面应用方案、分层架构和主要模块边界</td>
+<td>已完成</td>
+</tr>
+<tr>
+<td>静态设计</td>
+<td>已完成模块划分、数据库表结构、ER 图和核心类图</td>
+<td>基本完成</td>
+</tr>
+<tr>
+<td>详细设计</td>
+<td>已完成核心接口、关键类、主要时序图和状态流转设计</td>
+<td>基本完成</td>
+</tr>
+<tr>
+<td>核心原型</td>
+<td>已搭建主窗口框架、数据层和基础业务流程</td>
+<td>进行中</td>
+</tr>
+<tr>
+<td>Qt UI</td>
+<td>已完成页面框架与部分核心页面，交互细节仍需优化</td>
+<td>进行中</td>
+</tr>
+<tr>
+<td>高级功能</td>
+<td>简历生成、AI 助手、数据导入已完成方案设计或原型验证</td>
+<td>待完善</td>
+</tr>
+<tr>
+<td>测试与文档</td>
+<td>期中报告与技术解析文档初稿完成，测试计划待补充</td>
+<td>待完善</td>
+</tr>
+</tbody>
+</table>
+<h3 id="后续完善计划">12.2 后续完善计划</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 34%" />
+<col style="width: 44%" />
+</colgroup>
+<thead>
+<tr>
+<th>类别</th>
+<th>待完成内容</th>
+<th>计划完成时间</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UI 与交互</td>
+<td>完善所有业务页面、弹窗编辑、侧边栏交互和简历编辑体验</td>
+<td>第6-7周</td>
+</tr>
+<tr>
+<td>高级功能</td>
+<td>将简历、AI 与导入模块从原型推进到完整可演示版本</td>
+<td>第8周</td>
+</tr>
+<tr>
+<td>数据联动</td>
+<td>完善课程、目标、经历、成果、时间轴、简历之间的数据同步</td>
+<td>第8周</td>
+</tr>
+<tr>
+<td>测试调试</td>
+<td>补充核心模块单元测试、集成测试和手工回归测试</td>
+<td>第9周</td>
+</tr>
+<tr>
+<td>文档与演示</td>
+<td>完成期末设计报告、运行说明、提交包和演示讲稿</td>
+<td>第9-10周</td>
+</tr>
+</tbody>
+</table>
+<h3 id="风险与应对">12.3 风险与应对</h3>
+<table>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 45%" />
+</colgroup>
+<thead>
+<tr>
+<th>风险</th>
+<th>影响</th>
+<th>应对措施</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UI 细节耗时较多</td>
+<td>影响后续测试与演示准备</td>
+<td>优先完成核心流程，非关键动效和美化放到后期优化</td>
+</tr>
+<tr>
+<td>高级功能接入不稳定</td>
+<td>影响 AI 助手、简历导出等展示效果</td>
+<td>保留规则或本地原型方案，确保高级功能受限时也能演示主流程</td>
+</tr>
+<tr>
+<td>测试覆盖不足</td>
+<td>可能遗漏数据保存、导入、导出等边界问题</td>
+<td>优先测试 CRUD、数据库初始化、简历生成和分析报告等关键路径</td>
+</tr>
+<tr>
+<td>文档与代码不同步</td>
+<td>影响报告可信度</td>
+<td>每完成一个阶段同步更新报告和分工说明，避免出现旧架构描述</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

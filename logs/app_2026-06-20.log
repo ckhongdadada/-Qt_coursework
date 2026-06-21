@@ -1,0 +1,19 @@
+[2026-06-20 11:01:02] [INFO] ========================================
+[2026-06-20 11:01:02] [INFO]   学业发展规划系统 - 桌面版 v2.0.0
+[2026-06-20 11:01:02] [INFO] ========================================
+[2026-06-20 11:01:02] [INFO] Qt版本: 6.11.0
+[2026-06-20 11:01:02] [INFO] 应用路径: C:/Users/28414/Desktop/Qt_Cpp_Final_Submission/02_Executable
+[2026-06-20 11:01:02] [INFO] 工作目录: C:/Users/28414/Desktop/Qt_Cpp_Final_Submission
+[2026-06-20 11:01:02] [INFO] 日志文件: C:/Users/28414/Desktop/Qt_Cpp_Final_Submission/logs/app_2026-06-20.log
+[2026-06-20 11:01:02] [INFO] 数据库连接成功: C:/Users/28414/Desktop/Qt_Cpp_Final_Submission/pdp.db
+[2026-06-20 11:01:02] [WARN] SQL执行警告: duplicate column name: major_name Unable to execute statement
+[2026-06-20 11:01:02] [WARN] SQL执行警告: duplicate column name: section Unable to execute statement
+[2026-06-20 11:01:02] [INFO] 数据库Schema初始化完成
+[2026-06-20 11:01:03] [INFO] 找到前端静态文件: C:/Users/28414/Desktop/Qt_Cpp_Final_Submission/02_Executable/frontend_dist
+[2026-06-20 11:01:03] [INFO] 后端服务线程启动
+[2026-06-20 11:01:03] [INFO] 所有API路由已注册
+[2026-06-20 11:01:03] [INFO] 服务器已启动，监听端口 18080
+[2026-06-20 11:01:04] [INFO] 主窗口已显示，等待用户操作
+[2026-06-20 11:01:33] [INFO] 应用程序退出，返回码: 0
+[2026-06-20 11:01:33] [INFO] 服务器已停止
+[2026-06-20 11:01:33] [INFO] 后端服务线程退出

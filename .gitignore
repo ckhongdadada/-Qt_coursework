@@ -1,0 +1,32 @@
+# Build directories
+build/
+build_desktop/
+build-*/
+
+# Models
+qwen_models/
+
+# Python venv
+venv/
+__pycache__/
+*.pyc
+
+# Executables and databases
+*.exe
+*.db
+*.pdb
+*.ilk
+
+# Qt generated files
+*.user
+*.pro.user
+moc_*.cpp
+ui_*.h
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
