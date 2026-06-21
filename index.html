@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>低标注预算下长尾分布的主动学习与半监督学习联合策略</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #fff; }
+  #stage-wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #stage { width: 1280px; height: 720px; transform-origin: center center; background: #000; box-shadow: 0 12px 40px rgba(0,0,0,.6); position: relative; }
+  #stage iframe { width: 100%; height: 100%; border: 0; background: #000; display: block; }
+  /* 注意：不再使用 event-shield 覆盖层，让 slide iframe 内的 onclick / addEventListener 能正常生效。
+     键盘翻页通过 slide HTML 内嵌的 __qw_sel_bridge 桥接脚本走 postMessage 协议，行为与工作台 present 模式一致。 */
+  #controls { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 8px 14px; background: rgba(20,20,20,.78); border: 1px solid rgba(255,255,255,.12); border-radius: 999px; backdrop-filter: blur(12px); transition: opacity .25s; opacity: 1; z-index: 10; }
+  #controls.fade { opacity: 0; pointer-events: none; }
+  #controls button { width: 30px; height: 30px; border-radius: 50%; border: 0; background: rgba(255,255,255,.1); color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; padding: 0; }
+  #controls button:hover:not(:disabled) { background: rgba(255,255,255,.2); }
+  #controls button:disabled { opacity: .35; cursor: default; }
+  /* 全屏点亮态：按下 F 或全屏按钮进入全屏后，由 fullscreenchange 监听动态划上 */
+  #controls button.active { background: rgba(255,255,255,.32); color: #fff; }
+  #controls button svg { display: block; }
+  #counter { font-variant-numeric: tabular-nums; font-size: 13px; min-width: 64px; text-align: center; user-select: none; }
+  #hint { position: fixed; right: 16px; bottom: 16px; font-size: 11px; color: rgba(255,255,255,.45); user-select: none; pointer-events: none; }
+  #hint.fade { opacity: 0; }
+</style>
+</head>
+<body>
+  <div id="stage-wrap">
+    <!--
+      不加 sandbox：slide HTML 来自用户自己的 deck，信任度高；
+      加了 sandbox="allow-scripts" 会把 iframe 设为 unique origin，
+      file:// 协议下连同目录的图片资源都会被拦，导致图片加载失败。
+    -->
+    <div id="stage">
+      <iframe id="frame" tabindex="-1" allow="fullscreen"></iframe>
+    </div>
+  </div>
+  <div id="controls" role="toolbar" aria-label="Presenter controls">
+    <button id="prev" type="button" aria-label="Previous"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 3L5 7L9 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <span id="counter">- / -</span>
+    <button id="next" type="button" aria-label="Next"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5 3L9 7L5 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button id="fs" type="button" aria-label="Fullscreen"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 5V2H5 M9 2H12V5 M12 9V12H9 M5 12H2V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+  <div id="hint">&larr; &rarr; Space &middot; F fullscreen &middot; Esc exit</div>
+<script>
+(function () {
+  var SLIDES = [{"order":1,"file":"slides/1.html","title":"低标注预算下长尾分布的主动学习与半监督学习联合策略"},{"order":2,"file":"slides/2.html","title":"研究背景与动机"},{"order":3,"file":"slides/3.html","title":"核心问题提出"},{"order":4,"file":"slides/4.html","title":"实验设置与数据构造"},{"order":5,"file":"slides/5.html","title":"数据集构造与分布谱系"},{"order":6,"file":"slides/6.html","title":"TML模型与DL模型简述"},{"order":7,"file":"slides/7.html","title":"标准AL策略在分布谱系上的表现"},{"order":8,"file":"slides/8.html","title":"六种基础主动学习策略"},{"order":9,"file":"slides/9.html","title":"半监督学习策略：FixMatch框架"},{"order":10,"file":"slides/10.html","title":"FixMatch框架详述"},{"order":11,"file":"slides/11.html","title":"基础实验结果：纯AL策略对比"},{"order":12,"file":"slides/12.html","title":"尾类感知AL策略设计"},{"order":13,"file":"slides/13.html","title":"AL+SSL联合尾类感知策略"},{"order":14,"file":"slides/14.html","title":"主要实验结果"},{"order":15,"file":"slides/15.html","title":"Per-Class 逐类分析：Head vs Tail"},{"order":16,"file":"slides/16.html","title":"学习曲线：前三轮局部放大"},{"order":17,"file":"slides/17.html","title":"消融实验：AL创新 vs SSL创新"},{"order":18,"file":"slides/18.html","title":"渐进式SSL调度策略"},{"order":19,"file":"slides/19.html","title":"失效场景与适用边界分析"},{"order":20,"file":"slides/20.html","title":"总结与展望"}];
+  var DESIGN_W = 1280;
+  var DESIGN_H = 720;
+  var idx = 0;
+  var fadeTimer = null;
+
+  var stage = document.getElementById("stage");
+  var stageWrap = document.getElementById("stage-wrap");
+  var frame = document.getElementById("frame");
+  var counter = document.getElementById("counter");
+  var prevBtn = document.getElementById("prev");
+  var nextBtn = document.getElementById("next");
+  var fsBtn = document.getElementById("fs");
+  var controls = document.getElementById("controls");
+  var hint = document.getElementById("hint");
+
+  function fitStage() {
+    var rect = stageWrap.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    var scale = Math.min(rect.width / DESIGN_W, rect.height / DESIGN_H);
+    stage.style.transform = "scale(" + scale + ")";
+  }
+
+  function renderSlide() {
+    if (SLIDES.length === 0) {
+      counter.textContent = "0 / 0";
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      return;
+    }
+    if (idx < 0) idx = 0;
+    if (idx > SLIDES.length - 1) idx = SLIDES.length - 1;
+    var slide = SLIDES[idx];
+    if (frame.dataset.src !== slide.file) {
+      frame.dataset.src = slide.file;
+      frame.src = slide.file;
+    }
+    counter.textContent = (idx + 1) + " / " + SLIDES.length;
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx >= SLIDES.length - 1;
+    document.title = slide.title ? (slide.title + " - " + (idx + 1) + "/" + SLIDES.length) : (idx + 1) + " / " + SLIDES.length;
+  }
+
+  function go(delta) {
+    var next = idx + delta;
+    if (next < 0 || next >= SLIDES.length) return false;
+    idx = next;
+    renderSlide();
+    return true;
+  }
+
+  function jumpTo(n) {
+    if (n < 1 || n > SLIDES.length) return false;
+    idx = n - 1;
+    renderSlide();
+    return true;
+  }
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement) {
+      if (document.exitFullscreen) document.exitFullscreen();
+    } else {
+      var root = document.documentElement;
+      if (root && root.requestFullscreen) {
+        var p = root.requestFullscreen();
+        if (p && typeof p.catch === "function") p.catch(function () {});
+      }
+    }
+  }
+
+  function showControls() {
+    controls.classList.remove("fade");
+    hint.classList.remove("fade");
+    if (fadeTimer) clearTimeout(fadeTimer);
+    fadeTimer = setTimeout(function () {
+      controls.classList.add("fade");
+      hint.classList.add("fade");
+    }, 2000);
+  }
+
+  prevBtn.addEventListener("click", function () { go(-1); });
+  nextBtn.addEventListener("click", function () { go(1); });
+  fsBtn.addEventListener("click", function () { toggleFullscreen(); });
+
+  // 接通 slide HTML 内嵌的 __qw_sel_bridge 桥接脚本。bridge 在收到 ai-slides-set-present:true 后会在 iframe 内重点
+  // 拦截翻页键（ArrowLeft/Right/Up/Down/PageUp/PageDown/Space/Escape）并以 ai-slides-present-keydown 转发给父级，
+  // 从而避免 file:// 跨 origin 下 iframe 抢走焦点后外层听不到键盘事件。slide 内其他鼠标事件不被拦截，
+  // onclick / addEventListener 照常工作。
+  // 
+  // 另外导出产物中的 slide 内额外注入了 __qw_export_runtime 脚本，节流转发 ai-slides-export-mousemove，
+  // 让跨 origin 下鼠标在 iframe 内也能唤起控制条。
+  window.addEventListener("message", function (ev) {
+    if (!ev || !ev.data) return;
+    // 来源约束：只接受来自当前 stage iframe 的消息。
+    // file:// 下 ev.origin 通常不可用，因此用 ev.source === frame.contentWindow 做窗口级约束，
+    // 防止其它 iframe / 浏览器扩展 / 调试脚本伪造 type 触发翻页或唤起控制条。
+    if (ev.source !== frame.contentWindow) return;
+    var data = ev.data;
+    if (data.type === "ai-slides-present-keydown") {
+      var k = data.key;
+      if (k === "ArrowLeft" || k === "PageUp") { go(-1); }
+      else if (k === "ArrowRight" || k === "PageDown" || k === " ") { go(1); }
+      else if (k === "Escape") {
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+      }
+    } else if (data.type === "ai-slides-export-mousemove") {
+      if (typeof data.clientY !== "number") return;
+      // iframe 内 clientY 是相对 iframe 视口的，需换算为外层视口 y
+      var rect = frame.getBoundingClientRect();
+      var outerY = rect.top + data.clientY;
+      if (outerY > window.innerHeight - 200) showControls();
+    }
+  });
+
+  // 全屏状态同步点亮：进入全屏时给 fs 按钮加 .active，退出时取消。
+  // 用户能于以此看出是否处于全屏（部分浏览器全屏后没明显边框，不点亮难以辨识）。
+  document.addEventListener("fullscreenchange", function () {
+    if (document.fullscreenElement) {
+      fsBtn.classList.add("active");
+    } else {
+      fsBtn.classList.remove("active");
+    }
+  });
+
+  function handleKeydown(e) {
+    if (e.key === "ArrowLeft" || e.key === "PageUp") { if (go(-1)) e.preventDefault(); }
+    else if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { if (go(1)) e.preventDefault(); }
+    else if (e.key === "Home") { if (jumpTo(1)) e.preventDefault(); }
+    else if (e.key === "End") { if (jumpTo(SLIDES.length)) e.preventDefault(); }
+    else if (e.key === "f" || e.key === "F") { toggleFullscreen(); e.preventDefault(); }
+    else if (e.key === "Escape") { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); }
+    else if (/^[0-9]$/.test(e.key)) {
+      // 数字键累积跳页：1-9 直接跳到对应页（>9 由用户多次按支持，简单方案）
+      var n = parseInt(e.key, 10);
+      if (n >= 1 && jumpTo(n)) e.preventDefault();
+    }
+    // 翻页/快捷键不主动唤起控制条：控制条仅在鼠标进入底部唤醒带时出现
+  }
+  document.addEventListener("keydown", handleKeydown);
+
+  // 控制条唤起触发点：鼠标移到视口底部 200px 唤醒带时显示。
+  // 去掉 event-shield 后，slide 内部跨 origin 拿不到 mousemove，鼠标在 stage 外的黑边、控制条本身或 hint 区域时仍可触发，
+  // 用户在 slide 内交互时控制条不弹出，画面不被打扰 — 与工作台 present 模式行为一致。
+  function maybeWakeControls(e) {
+    if (!e || typeof e.clientY !== "number") return;
+    if (e.clientY > window.innerHeight - 200) showControls();
+  }
+  document.addEventListener("mousemove", maybeWakeControls);
+
+  // iframe load 后主动通知 bridge 启用键盘转发，并在同源允许时（如 http:// 部署）额外 attach contentDocument 事件作为 fallback。
+  // file:// 跨 origin 时 contentDocument 访问会抛 SecurityError，catch 住、完全依赖 bridge 的 postMessage 路径。
+  function bindIframeListeners() {
+    // 通知 bridge 进入 present 模式，启用键盘转发；postMessage 本身不需要同源
+    try {
+      if (frame.contentWindow) {
+        frame.contentWindow.postMessage({ type: "ai-slides-set-present", value: true }, "*");
+      }
+    } catch (_) {
+      /* 防御性 catch */
+    }
+    try {
+      var doc = frame.contentDocument;
+      if (!doc) return;
+      // iframe 内 clientY 是相对 iframe 视口的，换算为外层视口 y 后再判定底部唤醒带
+      doc.addEventListener("mousemove", function (e) {
+        var rect = frame.getBoundingClientRect();
+        if (rect.top + e.clientY > window.innerHeight - 200) showControls();
+      });
+      doc.addEventListener("keydown", handleKeydown);
+    } catch (_) {
+      // file:// 跨 origin，交给 bridge 的 postMessage 路径处理
+    }
+  }
+  frame.addEventListener("load", bindIframeListeners);
+
+  if (typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(fitStage).observe(stageWrap);
+  } else {
+    window.addEventListener("resize", fitStage);
+  }
+
+  fitStage();
+  renderSlide();
+  showControls();
+})();
+</script>
+</body>
+</html>

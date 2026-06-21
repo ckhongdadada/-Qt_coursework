@@ -1,0 +1,215 @@
+<!-- ai-slides: slot=slot-znt92x -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+@font-face { font-family: 'Alibaba PuHuiTi 3.0'; src: url('file:///C%3A/Users/28414/.qoderwork/assets/ai-slides/fonts/AlibabaPuHuiTi-3-55-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Alibaba PuHuiTi 3.0'; src: url('file:///C%3A/Users/28414/.qoderwork/assets/ai-slides/fonts/AlibabaPuHuiTi-3-65-Medium.ttf') format('truetype'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Alibaba PuHuiTi 3.0'; src: url('file:///C%3A/Users/28414/.qoderwork/assets/ai-slides/fonts/AlibabaPuHuiTi-3-85-Bold.ttf') format('truetype'); font-weight: 700; font-style: normal; font-display: swap; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+  font-family: 'Alibaba PuHuiTi 3.0', sans-serif;
+  background: #FFFFFF;
+}
+
+.slide {
+  width: 1280px;
+  height: 720px;
+  position: relative;
+  overflow: hidden;
+  background: #FFFFFF;
+}
+
+.top-bar {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 2.5px;
+  background: #2563EB;
+  z-index: 20;
+}
+
+.content-area {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 80px;
+  padding-top: 24px;
+  padding-bottom: 24px;
+  z-index: 5;
+}
+
+.content-block {
+  max-width: 66%;
+}
+
+.tag-label {
+  font-size: 20px;
+  font-weight: 500;
+  color: #2563EB;
+  letter-spacing: 0.14em;
+  margin-bottom: 28px;
+}
+
+.main-title {
+  font-size: 32px;
+  font-weight: 500;
+  color: #0F172A;
+  line-height: 1.3;
+  margin-bottom: 18px;
+  padding-top: 3px;
+}
+
+.subtitle {
+  font-size: 22px;
+  font-weight: 400;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 36px;
+}
+
+.separator {
+  width: 140px;
+  height: 1px;
+  background: #E2E8F0;
+  margin-bottom: 36px;
+}
+
+.footer-info {
+  font-size: 20px;
+  font-weight: 400;
+  color: #64748B;
+  line-height: 1.6;
+}
+
+.page-number {
+  position: absolute;
+  bottom: 22px;
+  right: 43px;
+  font-size: 18px;
+  font-weight: 400;
+  color: #64748B;
+  z-index: 15;
+}
+
+.dot-matrix {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.hexagons-layer {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<section id="slide-12" class="slide-container">
+  <div class="slide-inner" style="height: 100%; display: flex; flex-direction: column; padding: 32px 48px 24px;">
+
+    <!-- Header -->
+    <div class="slide-section-label">ABLATION STUDY</div>
+    <div class="slide-divider"></div>
+    <h1 class="slide-title">在AL创新基础上叠加联合分布感知</h1>
+
+    <!-- Body -->
+    <div class="slide-body" style="display: flex; flex-direction: row; gap: 24px; flex: 1; margin-top: 20px; min-height: 0;">
+
+      <!-- Left: Two insight cards -->
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 18px; justify-content: center;">
+
+        <div style="background: rgba(16,185,129,0.08); padding: 22px; border-radius: 12px; border-left: 4px solid #10b981;">
+          <div style="font-size: 1.15rem; color: #059669; font-weight: 700; margin-bottom: 10px;">① AL 创新已确立主要贡献</div>
+          <div style="font-size: 0.95rem; line-height: 1.7; color: #374151;">
+            Class-Aware 策略通过<strong>显式对弱势类加权惩罚</strong>，在 ρ=50 极端长尾场景下将 Macro-F1 从 <strong>0.2585 提升至 0.3129</strong>，实现 <strong>+21.0%</strong> 的核心增益。<br>
+            这是整个策略体系中<strong>最大的单项贡献</strong>。
+          </div>
+        </div>
+
+        <div style="background: rgba(59,130,246,0.08); padding: 22px; border-radius: 12px; border-left: 4px solid #3b82f6;">
+          <div style="font-size: 1.15rem; color: #2563eb; font-weight: 700; margin-bottom: 10px;">② 联合分布感知带来额外增益</div>
+          <div style="font-size: 0.95rem; line-height: 1.7; color: #374151;">
+            在 Innov AL 基础上引入<strong>联合分布感知</strong>：AL 查询时将模型对无标注集的伪标签分布纳入类惩罚项，使 AL 能主动感知并填补 SSL 尚未覆盖的弱势类别，实现真正的<strong>联合协同</strong>，额外提升至 <strong>0.3322（+28.5%）</strong>。
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: Data Table -->
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <div class="table-container" style="flex: 1; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+          <div class="table-label" style="background-color: #1E293B; color: white;">核心消融实验结果（CIFAR-10, Budget=1100, ρ=50）</div>
+          
+          <div class="table-header" style="background-color: #F1F5F9; border-radius: 4px; display: grid; grid-template-columns: 2fr 1fr; align-items: center; padding: 12px;">
+            <span style="font-weight: 600; color: #334155; text-align: left; padding-left: 12px;">策略组合</span>
+            <span style="font-weight: 600; color: #334155; text-align: center;">Macro-F1</span>
+          </div>
+
+          <!-- Base SSL -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; align-items: center; padding: 12px; border-bottom: 1px solid #E2E8F0;">
+            <span style="color: #64748b; font-weight: 500; text-align: left; padding-left: 12px;">Base AL + Base SSL <span style="font-size: 0.8em; font-weight: 400;">(基线)</span></span>
+            <span style="text-align: center; color: #64748b; font-family: monospace; font-size: 1.1rem;">0.2585</span>
+          </div>
+
+          <!-- + Innov AL -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; align-items: center; padding: 12px; border-bottom: 1px solid #E2E8F0; background: rgba(16,185,129,0.05);">
+            <div style="text-align: left; padding-left: 12px;">
+              <span style="color: #059669; font-weight: 600;">Innov AL</span><br>
+              <span style="color: #64748b; font-size: 0.85em;">+ Base SSL</span>
+            </div>
+            <div style="text-align: center;">
+              <span style="font-family: monospace; font-size: 1.2rem; font-weight: 600; color: #059669;">0.3129</span><br>
+              <span style="font-size: 0.85rem; color: #10b981; font-weight: 600;">+21.0%</span>
+            </div>
+          </div>
+
+          <!-- + Innov AL + Innov SSL -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; align-items: center; padding: 12px; border-bottom: 1px solid #E2E8F0;">
+            <div style="text-align: left; padding-left: 12px;">
+              <span style="color: #059669; font-weight: 600;">Innov AL</span><br>
+              <span style="color: #2563eb; font-weight: 600;">+ Innov SSL <span style="font-size: 0.8em; font-weight: 400;">(渐进式)</span></span>
+            </div>
+            <div style="text-align: center;">
+              <span style="font-family: monospace; font-size: 1.2rem; font-weight: 600; color: #3b82f6;">0.3242</span><br>
+              <span style="font-size: 0.85rem; color: #3b82f6; font-weight: 600;">+25.4%</span>
+            </div>
+          </div>
+
+          <!-- + Joint -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; align-items: center; padding: 12px; background: rgba(59,130,246,0.1); border-bottom: 2px solid #2563eb;">
+            <div style="text-align: left; padding-left: 12px;">
+              <span style="color: #059669; font-weight: 600;">Innov AL</span><br>
+              <span style="color: #2563eb; font-weight: 600;">+ Innov SSL</span><br>
+              <span style="color: #7c3aed; font-weight: 700; font-size: 1.05em;">+ Joint (联合分布感知)</span>
+            </div>
+            <div style="text-align: center;">
+              <span style="font-family: monospace; font-size: 1.4rem; font-weight: 700; color: #7c3aed;">0.3322</span><br>
+              <span style="font-size: 0.95rem; color: #7c3aed; font-weight: 700;">+28.5%</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

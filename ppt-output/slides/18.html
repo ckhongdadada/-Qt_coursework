@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>渐进式SSL调度策略</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+
+:root {
+  /* Background */
+  --bg-primary: #ffffff;
+  --bg-gradient-to: #f6f8fb;
+
+  /* Card */
+  --card-from: #ffffff;
+  --card-to: #f6f8fb;
+  --card-border: rgba(10,29,58,0.06);
+  --card-radius: 12px;
+
+  /* Text */
+  --text-primary: #0a1d3a;
+  --text-secondary: #64748b;
+
+  /* Accent */
+  --accent-primary: #2563EB;
+  --accent-primary-dark: #1D4ED8;
+  --accent-secondary: #059669;
+
+  /* Typography */
+  --font-display: -apple-system, 'SF Pro Display', 'Inter Tight', 'Inter', BlinkMacSystemFont, sans-serif;
+  --font-body: -apple-system, 'SF Pro Text', 'Inter', sans-serif;
+  --font-serif: 'Instrument Serif', 'Fraunces', Georgia, serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+
+  /* Letter Spacing */
+  --ls-display: -0.042em;
+  --ls-headline: -0.02em;
+  --ls-body: -0.005em;
+  --ls-label: 0.22em;
+}
+
+
+/* Reset & Base */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.slide {
+  width: 1280px;
+  height: 720px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-primary);
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  font-feature-settings: 'kern', 'liga', 'calt', 'ss01', 'cv11', 'ccmp';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Top accent bar - subtle */
+.top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-dark));
+  opacity: 0.8;
+}
+
+/* Page header with dot-pulse label */
+.page-header {
+  padding: 48px 64px 0;
+}
+
+.page-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 16px;
+}
+
+.page-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  line-height: 1.2;
+}
+
+/* Serif italic for emphasis */
+.page-title em,
+.highlight em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--accent-primary);
+}
+
+/* Header divider */
+.header-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--card-border);
+  margin: 20px 0;
+}
+
+/* Content area */
+.content {
+  padding: 24px 64px 48px;
+  flex: 1;
+}
+
+/* Cards grid - Bento style */
+.cards-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.cards-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.cards-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.cards-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Card - Apple minimal */
+.card {
+  background: linear-gradient(135deg, var(--card-from), var(--card-to));
+  border: 1px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: var(--ls-headline);
+  margin-bottom: 8px;
+}
+
+.card-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: var(--ls-body);
+  line-height: 1.6;
+}
+
+/* Data numbers - tabular-nums */
+.data-number {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums proportional-nums;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.data-number.large {
+  font-size: 48px;
+  letter-spacing: var(--ls-display);
+}
+
+.data-number.medium {
+  font-size: 32px;
+  letter-spacing: var(--ls-headline);
+}
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--card-border);
+}
+
+.data-table td {
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Page number */
+.page-number {
+  position: absolute;
+  bottom: 24px;
+  right: 48px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Corner decoration lines - Apple style */
+.corner-lines {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.corner-lines::before,
+.corner-lines::after {
+  content: '';
+  position: absolute;
+  background: var(--accent-primary);
+  opacity: 0.15;
+}
+
+.corner-lines::before {
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 20px;
+}
+
+.corner-lines::after {
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 1px;
+}
+
+/* Inner frame - subtle border */
+.inner-frame {
+  position: absolute;
+  inset: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Hexagon decorations - minimal */
+.hex-decoration {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.08;
+}
+
+/* Formulas */
+.formula-block {
+  background: var(--bg-gradient-to);
+  border-left: 3px solid var(--accent-primary);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+
+.formula {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+/* KaTeX overrides */
+.katex { font-size: 1em; }
+.katex-display { margin: 0; }
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+</style>
+</head>
+<body>
+
+<section id="slide-18" class="slide-page">
+  <div class="top-bar"></div>
+  <div class="page-header">
+    <div class="page-label">设计思想</div>
+    <h1 class="page-title">渐进式SSL调度策略</h1>
+    <div class="header-divider"></div>
+  </div>
+  <div class="content">
+    <div class="slide-root">
+    <!-- Top bar -->
+    <div class="top-bar"></div>
+
+    <!-- Page header -->
+    <div class="page-header">
+        <div class="page-tag">Progressive SSL</div>
+        <div class="header-line"></div>
+        <h1 class="page-title">渐进式SSL调度策略</h1>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Left: Chart -->
+        <div class="chart-col">
+            <div class="chart-label">Macro-F1 Score</div>
+            <div class="chart-wrap">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Right: Concepts + Findings -->
+        <div class="findings-col">
+            <div class="section-label">设计思想</div>
+
+            <!-- Card 1: Base SSL -->
+            <div class="concept-card">
+                <div class="card-title">
+                    <div class="card-accent-line" style="background:#64748B;"></div>
+                    Base SSL（基础SSL）
+                </div>
+                <div class="card-text">标准FixMatch，<strong>固定阈值 τ=0.95</strong> 筛选伪标签。<span class="pro">优点：准确率高(71.2%)</span>；<span class="con">缺点：尾类训练不足，伪标签少且偏向头类</span></div>
+            </div>
+
+            <!-- Card 2: Progressive Strategy (reframed) -->
+            <div class="concept-card">
+                <div class="card-title">
+                    <div class="card-accent-line" style="background:#0F172A;"></div>
+                    渐进式启用策略
+                </div>
+                <div class="card-text">前<strong>r轮</strong>仅使用监督学习，第r+1轮起启用Base SSL（FixMatch τ=0.95）。延迟SSL启用确保模型积累足够标注数据，<span class="pro">伪标签质量更可靠</span>。<span class="pro">ρ=50时r=3最优，ρ=100时r=5最优</span></div>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="findings-heading">关键发现</div>
+
+            <div class="finding-item">
+                <div class="finding-bullet"><svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#2563EB"/></svg></div>
+                <div class="finding-text"><strong>低ρ(≤10)：</strong>Base SSL最优，早期标注数据不足</div>
+            </div>
+
+            <div class="finding-item">
+                <div class="finding-bullet"><svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#2563EB"/></svg></div>
+                <div class="finding-text"><strong>ρ=50：</strong>Prog r3最优(0.3322)，第4轮启用SSL</div>
+            </div>
+
+            <div class="finding-item">
+                <div class="finding-bullet"><svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#2563EB"/></svg></div>
+                <div class="finding-text"><strong>ρ=100：</strong>Prog r5最优(0.2988)，需更长纯监督期</div>
+            </div>
+
+            <div class="finding-item">
+                <div class="finding-bullet"><svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="#2563EB"/></svg></div>
+                <div class="finding-text"><strong>启用时机影响显著：</strong>长尾越极端，SSL延迟越有利</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hexagonal decorations -->
+<div class="hex-decorations">
+    <svg width="160" height="140" viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;right:0;bottom:0;">
+        <!-- Hex 1: center (90,55), side 25px -->
+        <polygon points="115,55 102.5,76.65 77.5,76.65 65,55 77.5,33.35 102.5,33.35" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.29"/>
+        <!-- Hex 2: center (130,25), side 15px -->
+        <polygon points="145,25 137.5,37.99 122.5,37.99 115,25 122.5,12.01 137.5,12.01" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.25"/>
+        <!-- Hex 3: center (70,105), side 35px — partial overflow bottom -->
+        <polygon points="105,105 87.5,135.31 52.5,135.31 35,105 52.5,74.69 87.5,74.69" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.31"/>
+        <!-- Hex 4: center (140,85), side 20px — partial overflow right -->
+        <polygon points="160,85 150,102.32 130,102.32 120,85 130,67.68 150,67.68" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.27"/>
+        <!-- Hex 5: center (110,65), side 40px — large -->
+        <polygon points="150,65 130,99.64 90,99.64 70,65 90,30.36 130,30.36" stroke="#2563EB" stroke-width="1" fill="none" opacity="0.35"/>
+    </svg>
+</div>
+
+<!-- Page number -->
+<div class="page-number">18 / 20</div>
+  </div>
+  <div class="corner-lines"></div>
+  <div class="page-number">18 / 20</div>
+</section>
+
+</body>
+</html>

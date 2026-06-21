@@ -1,0 +1,37 @@
+<div class="slide-inner" style="height: 100%; display: flex; flex-direction: column; padding: 24px 48px 16px;">
+    <!-- Header -->
+    <div style="font-size: 0.85rem; font-weight: 700; color: #2563eb; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;">METHODOLOGY : SSL MECHANISM</div>
+    <div style="height: 3px; width: 40px; background: #2563eb; margin-bottom: 16px;"></div>
+    <h1 style="font-size: 2rem; font-weight: 800; color: #1e293b; margin-top: 0; margin-bottom: 24px;">自训练与伪标签生成机制</h1>
+
+    <!-- Cards -->
+    <div style="display: flex; gap: 24px; flex: 1;">
+        <!-- Card 1 -->
+        <div style="flex: 1; background: #f8fafc; border-radius: 12px; padding: 24px; border-top: 4px solid #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+            <div style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin-bottom: 16px;">1. 预测与置信度过滤</div>
+            <p style="font-size: 0.95rem; color: #475569; line-height: 1.6; flex: 1;">
+                在半监督学习的自训练（Self-Training）范式中，模型首先对无标签数据池（Unlabeled Pool）进行预测。为了保证伪标签的质量，我们会设定一个严格的<strong>置信度阈值（&tau;，如 0.95）</strong>。只有预测概率大于 &tau; 的高置信度样本才会被保留。
+            </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div style="flex: 1; background: #f8fafc; border-radius: 12px; padding: 24px; border-top: 4px solid #10b981; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+            <div style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin-bottom: 16px;">2. 伪标签分配 (Pseudo-Labeling)</div>
+            <p style="font-size: 0.95rem; color: #475569; line-height: 1.6; flex: 1;">
+                对于跨越阈值的样本，模型将其输出的概率分布转化为<strong>硬标签（Hard Label，即 One-hot 向量）</strong>或保留为软标签。这些样本将化身为“伪标签样本”，它们将被视为真实的训练数据来辅助后续迭代。
+            </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div style="flex: 1; background: #f8fafc; border-radius: 12px; padding: 24px; border-top: 4px solid #8b5cf6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+            <div style="font-size: 1.15rem; font-weight: 700; color: #1e293b; margin-bottom: 16px;">3. 联合重新训练 (Retraining)</div>
+            <p style="font-size: 0.95rem; color: #475569; line-height: 1.6; flex: 1;">
+                最后，将人工真实标签数据（Labeled Data）与这些生成的伪标签数据（Pseudo-labeled Data）合并，作为新的训练集重新训练模型。模型借此从无标注数据中汲取了强大的知识分布。
+            </p>
+        </div>
+    </div>
+
+    <div style="margin-top: 24px; background: rgba(59,130,246,0.05); border-radius: 8px; padding: 16px; border-left: 4px solid #2563eb;">
+        <span style="font-size: 0.95rem; color: #1e40af;"><strong>潜在挑战：</strong>在长尾分布下，模型极度偏袒头部类，产生的伪标签几乎全被头部垄断，导致严重的<strong>确认偏差（Confirmation Bias）</strong>。这也是我们创新的切入点。</span>
+    </div>
+</div>

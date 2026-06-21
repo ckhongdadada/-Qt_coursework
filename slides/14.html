@@ -1,0 +1,394 @@
+<!-- ai-slides: slot=slot-zh0jbx -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+@font-face { font-family: 'Alibaba PuHuiTi 3.0'; src: url('file:///C%3A/Users/28414/.qoderwork/assets/ai-slides/fonts/AlibabaPuHuiTi-3-55-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Alibaba PuHuiTi 3.0'; src: url('file:///C%3A/Users/28414/.qoderwork/assets/ai-slides/fonts/AlibabaPuHuiTi-3-65-Medium.ttf') format('truetype'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Alibaba PuHuiTi 3.0'; src: url('file:///C%3A/Users/28414/.qoderwork/assets/ai-slides/fonts/AlibabaPuHuiTi-3-85-Bold.ttf') format('truetype'); font-weight: 700; font-style: normal; font-display: swap; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Alibaba PuHuiTi 3.0', sans-serif;
+    background: #FFFFFF;
+    color: #0F172A;
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Chrome: top-bar accent */
+.top-bar {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 2.5px;
+    background: #2563EB;
+    z-index: 10;
+}
+
+.slide-root {
+    width: 1280px;
+    height: 720px;
+    padding: 24px 56px 24px 56px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+h1.slide-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1.3;
+    margin-top: 8px;
+}
+
+.slide-subtitle {
+    font-size: 20px;
+    font-weight: 400;
+    color: #475569;
+    margin-top: 4px;
+}
+
+.separator {
+    width: 140px;
+    height: 1px;
+    background: #E2E8F0;
+    margin: 10px 0;
+    flex-shrink: 0;
+}
+
+/* Hero stat section */
+.hero-section {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 14px 24px;
+    background: #F8FAFC;
+    border: 0.5px solid #E2E8F0;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+}
+
+.hero-number {
+    font-size: 60px;
+    font-weight: 700;
+    color: #2563EB;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.hero-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hero-info-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: #0F172A;
+    line-height: 1.3;
+}
+
+.hero-info-desc {
+    font-size: 20px;
+    font-weight: 400;
+    color: #475569;
+    line-height: 1.4;
+}
+
+/* Cards row */
+.cards-row {
+    display: flex;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+}
+
+.card {
+    flex: 1;
+    border: 0.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 16px 18px;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1.3;
+    margin-bottom: 2px;
+}
+
+.card-subheader {
+    font-size: 20px;
+    font-weight: 400;
+    color: #64748B;
+    margin-bottom: 12px;
+}
+
+/* Table inside card */
+.table-header {
+    display: flex;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #E2E8F0;
+    margin-bottom: 2px;
+}
+
+.table-row {
+    display: flex;
+    padding: 9px 0;
+    border-bottom: 0.5px solid #E2E8F0;
+}
+
+.table-row:last-of-type {
+    border-bottom: none;
+}
+
+.table-row.highlight-row {
+    background: rgba(37, 99, 235, 0.04);
+    border-radius: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-left: -8px;
+    margin-right: -8px;
+}
+
+.col-name {
+    width: 104px;
+    font-size: 20px;
+    font-weight: 400;
+    color: #0F172A;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.col-name.is-label { color: #64748B; font-weight: 500; }
+.col-name.is-bold { font-weight: 500; }
+
+.col-data {
+    flex: 1;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 400;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.col-data.is-label { color: #64748B; font-weight: 500; }
+.col-data.is-bold { font-weight: 700; color: #0F172A; }
+
+/* Card footer with improvement indicator */
+.card-footer {
+    margin-top: auto;
+    padding-top: 14px;
+}
+
+.bar-track {
+    width: 100%;
+    height: 4px;
+    background: #E2E8F0;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.bar-fill { height: 100%; border-radius: 2px; }
+.bar-fill.pos { background: #2563EB; }
+.bar-fill.neg { background: #64748B; }
+
+.improvement-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.improvement-text {
+    font-size: 20px;
+    font-weight: 400;
+    color: #64748B;
+}
+
+.improvement-badge {
+    font-size: 22px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 4px;
+}
+
+.improvement-badge.pos {
+    color: #2563EB;
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.improvement-badge.neg {
+    color: #64748B;
+    background: rgba(100, 116, 139, 0.08);
+}
+
+/* Takeaway */
+.takeaway {
+    margin-top: 14px;
+    padding: 12px 20px;
+    border-left: 3px solid #2563EB;
+    background: #F8FAFC;
+    border-radius: 0 6px 6px 0;
+    flex-shrink: 0;
+}
+
+.takeaway-text {
+    font-size: 20px;
+    font-weight: 400;
+    color: #0F172A;
+    line-height: 1.5;
+}
+
+/* Page number */
+.page-number {
+    position: absolute;
+    bottom: 24px;
+    right: 56px;
+    font-size: 18px;
+    font-weight: 400;
+    color: #64748B;
+}
+
+/* Decorative wireframe hexagons */
+.hex-deco {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+}
+</style>
+</head>
+<body>
+<div class="top-bar"></div>
+<div class="slide-root" style="height:100%;display:flex;flex-direction:column;padding:24px 48px 16px;">
+  <!-- Header -->
+  <div class="slide-header">
+    <div class="slide-section-label">PER-CLASS ANALYSIS</div>
+    <div class="slide-divider"></div>
+    <h1 class="slide-title">细粒度拆解：特定分布(ρ=50)下的协同增益</h1>
+  </div>
+
+  <div style="display:flex;flex-direction:row;gap:24px;flex:1;margin-top:16px;">
+    
+    <!-- Left: Data Table -->
+    <div style="flex:1.4;display:flex;flex-direction:column;">
+      <div style="background:#f8fafc;border-radius:12px;padding:20px 16px;border:1px solid #e5e7eb;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);height:100%;display:flex;flex-direction:column;">
+        <div style="font-size:0.95rem;font-weight:700;color:#1e293b;margin-bottom:16px;">不同长尾分布下的群组 F1 表现</div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.9rem;text-align:center;flex:1;">
+          <thead>
+            <tr style="background:#e2e8f0;color:#475569;font-weight:600;border-bottom:2px solid #cbd5e1;">
+              <th style="padding:12px 8px;text-align:left;">不平衡率</th>
+              <th style="padding:12px 8px;text-align:left;">群组 (类索引)</th>
+              <th style="padding:12px 8px;">Entropy (基线)</th>
+              <th style="padding:12px 8px;">CA (创新)</th>
+              <th style="padding:12px 8px;">CA+SSL (联合)</th>
+              <th style="padding:12px 8px;text-align:right;">净提升</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- rho=10 -->
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td rowspan="3" style="font-weight:700;color:#334155;border-right:1px solid #e2e8f0;padding:12px 8px;">&rho; = 10</td>
+              <td style="text-align:left;padding:12px 8px;">Head (0-2)</td>
+              <td>0.279</td><td>0.330</td><td style="font-weight:600;">0.381</td>
+              <td style="text-align:right;color:#059669;font-weight:700;">+36.6%</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="text-align:left;padding:12px 8px;">Middle (3-6)</td>
+              <td>0.287</td><td>0.349</td><td style="font-weight:600;">0.385</td>
+              <td style="text-align:right;color:#059669;font-weight:700;">+34.1%</td>
+            </tr>
+            <tr style="border-bottom:2px solid #e2e8f0;background:rgba(241,245,249,0.5);">
+              <td style="text-align:left;padding:12px 8px;">Tail (7-9)</td>
+              <td>0.454</td><td>0.517</td><td style="font-weight:600;">0.515</td>
+              <td style="text-align:right;color:#10b981;font-weight:600;">+13.4%</td>
+            </tr>
+
+            <!-- rho=50 -->
+            <tr style="border-bottom:1px solid #f1f5f9;background:rgba(16,185,129,0.03);">
+              <td rowspan="3" style="font-weight:700;color:#059669;border-right:1px solid #e2e8f0;padding:12px 8px;">&rho; = 50</td>
+              <td style="text-align:left;padding:12px 8px;">Head (0-2)</td>
+              <td>0.217</td><td>0.254</td><td style="font-weight:600;">0.259</td>
+              <td style="text-align:right;color:#059669;font-weight:700;">+19.4%</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f1f5f9;background:rgba(16,185,129,0.08);">
+              <td style="text-align:left;padding:12px 8px;font-weight:700;color:#059669;">Middle (3-6) ⭐</td>
+              <td style="font-weight:600;">0.182</td><td style="font-weight:600;">0.252</td><td style="font-weight:700;color:#059669;">0.276</td>
+              <td style="text-align:right;color:#059669;font-weight:800;font-size:1.0rem;">+52.2%</td>
+            </tr>
+            <tr style="border-bottom:2px solid #e2e8f0;background:rgba(16,185,129,0.03);">
+              <td style="text-align:left;padding:12px 8px;">Tail (7-9)</td>
+              <td>0.384</td><td>0.454</td><td style="font-weight:600;">0.482</td>
+              <td style="text-align:right;color:#059669;font-weight:700;">+25.6%</td>
+            </tr>
+
+            <!-- rho=100 -->
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td rowspan="3" style="font-weight:700;color:#ef4444;border-right:1px solid #e2e8f0;padding:12px 8px;">&rho; = 100</td>
+              <td style="text-align:left;padding:12px 8px;color:#ef4444;">Head (0-2) ⚠️</td>
+              <td>0.312</td><td>0.244</td><td style="font-weight:600;color:#ef4444;">0.230</td>
+              <td style="text-align:right;color:#ef4444;font-weight:700;">-26.3%</td>
+            </tr>
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="text-align:left;padding:12px 8px;">Middle (3-6)</td>
+              <td>0.180</td><td>0.221</td><td style="font-weight:600;">0.220</td>
+              <td style="text-align:right;color:#059669;font-weight:700;">+22.1%</td>
+            </tr>
+            <tr>
+              <td style="text-align:left;padding:12px 8px;">Tail (7-9)</td>
+              <td>0.368</td><td>0.341</td><td style="font-weight:600;">0.359</td>
+              <td style="text-align:right;color:#ef4444;font-weight:600;">-2.4%</td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div style="font-size:0.75rem;color:#6b7280;margin-top:12px;text-align:center;">
+          注：由于早期实验日志限制，QBC/Margin 等其他基线策略未保存细粒度群组 F1 数据，故此处以最具代表性的 Entropy 为基线进行核心分析。
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Analysis Cards -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:18px;">
+      
+      <div style="background:rgba(59,130,246,0.08);padding:20px 18px;border-radius:10px;border-left:4px solid #3b82f6;flex:1;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-size:0.98rem;font-weight:700;color:#2563eb;margin-bottom:8px;">1. CIFAR-10 数据集特性</div>
+        <div style="font-size:0.88rem;line-height:1.6;color:#374151;">
+          为何 Tail 的 F1 最高？CIFAR-10 的 Tail 类别（7-horse, 8-ship, 9-truck）视觉特征<strong>极具辨识度</strong>。而 Head 和 Middle 包含易混淆类别（如 cat/dog）。因此，Tail 即使样本极少，模型也极易划定决策边界。
+        </div>
+      </div>
+
+      <div style="background:rgba(16,185,129,0.08);padding:20px 18px;border-radius:10px;border-left:4px solid #10b981;flex:1;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-size:0.98rem;font-weight:700;color:#059669;margin-bottom:8px;">2. Middle 类是最大受益者</div>
+        <div style="font-size:0.88rem;line-height:1.6;color:#374151;">
+          &rho;&le;50 时，<strong>Middle 类实现了 +52.2% 的惊人提升</strong>。Head 样本已饱和，Tail 样本极度匮乏且本身好分；Middle 恰好处于“边际收益最大化”区间。联合策略的精准伪标签像雪中送炭，轻易突破了 Middle 的分类瓶颈。
+        </div>
+      </div>
+
+      <div style="background:rgba(239,68,68,0.08);padding:20px 18px;border-radius:10px;border-left:4px solid #ef4444;flex:1;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-size:0.98rem;font-weight:700;color:#dc2626;margin-bottom:8px;">3. 极度不平衡下的“跷跷板效应”</div>
+        <div style="font-size:0.88rem;line-height:1.6;color:#374151;">
+          &rho;=100 时创新策略导致 Head 性能下降 26.3%（<strong>See-Saw Effect</strong>）。算法过于激进地保护弱势群体（Tail/Middle），导致模型对 Head 产生了“遗忘”。这揭示了未来引入<strong>自适应强度控制</strong>的重要性。
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

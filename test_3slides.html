@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>测试 - 3个幻灯片</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100vh; background: #000; overflow: hidden; }
+
+.wrapper { width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; }
+.stage { width: 1280px; height: 720px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+.slide { position: absolute; top: 0; left: 0; width: 1280px; height: 720px; background: #fff; }
+
+.slide-1 { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  flex-direction: column;
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
+}
+.slide-1 h1 { font-size: 48px; color: #2563EB; margin-bottom: 20px; }
+.slide-1 p { font-size: 24px; color: #666; }
+
+.slide-2 {
+  padding: 60px;
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
+}
+.slide-2 h1 { font-size: 36px; color: #2563EB; margin-bottom: 30px; }
+.slide-2 .cards { display: flex; gap: 20px; }
+.slide-2 .card { flex: 1; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+.slide-2 .card h3 { font-size: 20px; margin-bottom: 10px; color: #333; }
+.slide-2 .card p { font-size: 16px; color: #666; }
+
+.slide-3 {
+  padding: 60px;
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
+}
+.slide-3 h1 { font-size: 36px; color: #2563EB; margin-bottom: 30px; }
+.slide-3 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.slide-3 th, .slide-3 td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+.slide-3 th { background: #2563EB; color: white; }
+
+.controls {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,20,20,0.9);
+  padding: 12px 20px;
+  border-radius: 30px;
+  display: flex;
+  gap: 15px;
+  z-index: 1000;
+}
+.controls button {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.controls button:hover { background: rgba(255,255,255,0.25); }
+.controls button:disabled { opacity: 0.3; cursor: not-allowed; }
+.controls span { color: #fff; font-size: 14px; padding: 8px; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="stage">
+    <div class="slide slide-1" id="slide-1" style="display: block;">
+      <h1>低标注预算下的长尾分布联合学习策略研究</h1>
+      <p>主动学习与半监督学习的协同框架</p>
+      <p style="margin-top: 40px; font-size: 18px;">作者：某某 | 2026年6月</p>
+    </div>
+    
+    <div class="slide slide-2" id="slide-2" style="display: none;">
+      <h1>研究背景与动机</h1>
+      <div class="cards">
+        <div class="card">
+          <h3>长尾分布的普遍性</h3>
+          <p>医疗诊断、缺陷检测等场景中，数据呈严重长尾分布，头尾类样本比可达100:1</p>
+        </div>
+        <div class="card">
+          <h3>标注成本高昂</h3>
+          <p>高质量标注需领域专家参与，如何在低标注预算下有效学习成为关键</p>
+        </div>
+        <div class="card">
+          <h3>现有方法的局限</h3>
+          <p>主动学习和半监督学习现有研究大多假设数据均衡</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="slide slide-3" id="slide-3" style="display: none;">
+      <h1>数据集示例</h1>
+      <p>CIFAR-10 长尾分布样本数</p>
+      <table>
+        <thead>
+          <tr>
+            <th>ρ值</th>
+            <th>头类样本</th>
+            <th>尾类样本</th>
+            <th>总计</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>5,000</td>
+            <td>5,000</td>
+            <td>50,000</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>5,000</td>
+            <td>500</td>
+            <td>15,250</td>
+          </tr>
+          <tr>
+            <td>50</td>
+            <td>5,000</td>
+            <td>100</td>
+            <td>4,472</td>
+          </tr>
+          <tr>
+            <td>100</td>
+            <td>5,000</td>
+            <td>50</td>
+            <td>3,175</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="prev" onclick="prev()">← 上一页</button>
+  <span id="counter">1 / 3</span>
+  <button id="next" onclick="next()">下一页 →</button>
+</div>
+
+<script>
+let current = 1;
+const total = 3;
+
+function show(n) {
+  if (n < 1) n = 1;
+  if (n > total) n = total;
+  
+  for (let i = 1; i <= total; i++) {
+    const slide = document.getElementById('slide-' + i);
+    if (slide) slide.style.display = 'none';
+  }
+  
+  const curr = document.getElementById('slide-' + n);
+  if (curr) curr.style.display = 'block';
+  
+  current = n;
+  document.getElementById('counter').textContent = n + ' / ' + total;
+  document.getElementById('prev').disabled = (n === 1);
+  document.getElementById('next').disabled = (n === total);
+  
+  console.log('显示幻灯片:', n);
+}
+
+function next() { show(current + 1); }
+function prev() { show(current - 1); }
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowLeft') prev();
+  if (e.key === 'ArrowRight' || e.key === ' ') next();
+  if (e.key === '1') show(1);
+  if (e.key === '2') show(2);
+  if (e.key === '3') show(3);
+});
+
+console.log('测试页面已加载');
+show(1);
+</script>
+</body>
+</html>

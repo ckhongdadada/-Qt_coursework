@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Build directories
 build/
 build_desktop/
@@ -30,3 +31,40 @@ ui_*.h
 # OS
 .DS_Store
 Thumbs.db
+=======
+build/
+build_desktop/
+build_server_test/
+test_cmake/build/
+*.user
+*.autosave
+*.pro.user
+moc_*
+ui_*
+qrc_*
+*.o
+*.obj
+*.exe
+*.dll
+*.lib
+*.a
+*.so
+*.dylib
+CMakeLists.txt.user
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles/
+Makefile
+*.cbp
+.vscode/
+.idea/
+venv/
+__pycache__/
+*.pyc
+backups/
+qwen_models/
+stage1/
+stage2/
+stage3/
+stage4/
+>>>>>>> a1a1c540b8db8de40caf55e6df7b106041b85ff0
